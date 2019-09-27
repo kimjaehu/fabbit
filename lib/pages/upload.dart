@@ -1,10 +1,17 @@
 import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fabbit/models/user.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:image/image.dart' as Im;
+
+import 'package:fabbit/pages/home.dart';
+import 'package:fabbit/models/user.dart';
+import 'package:fabbit/widgets/progress.dart';
 
 class Upload extends StatefulWidget {
   final User currentUser;
@@ -16,7 +23,12 @@ class Upload extends StatefulWidget {
 }
 
 class _UploadState extends State<Upload> {
+  TextEditingController locationController = TextEditingController();
+  TextEditingController captionController = TextEditingController();
   File file;
+  bool isUploading = false;
+  String postId = Uuid().v4();
+
 
   handleTakePhoto() async {
     Navigator.pop(context);
@@ -97,6 +109,63 @@ class _UploadState extends State<Upload> {
     });
   }
 
+  compressImage() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Im.Image imageFile = Im.decodeImage(file.readAsBytesSync());
+    final compressedImageFile = File('$path/img_$postId.jpg')
+      ..writeAsBytesSync(Im.encodeJpg(imageFile, quality: 50));
+    setState(() {
+      file = compressedImageFile;
+    });
+  }
+
+  Future<String> uploadImage(imageFile) async {
+    StorageUploadTask uploadTask =
+        storageRef.child("post_$postId.jpg").putFile(imageFile);
+    StorageTaskSnapshot storageSnap = await uploadTask.onComplete;
+    String downloadUrl = await storageSnap.ref.getDownloadURL();
+    return downloadUrl;
+  }
+
+  createPostInFirestore(
+      {String mediaUrl, String location, String description}) {
+    postsRef
+        .document(widget.currentUser.id)
+        .collection("userPosts")
+        .document(postId)
+        .setData({
+      "postId": postId,
+      "ownerId": widget.currentUser.id,
+      "username": widget.currentUser.username,
+      "mediaUrl": mediaUrl,
+      "description": description,
+      "location": location,
+      "timestamp": timestamp,
+      "likes": {},
+    });
+    captionController.clear();
+    locationController.clear();
+    setState(() {
+      file = null;
+      isUploading = false;
+      postId = Uuid().v4();
+    });
+  }
+
+  handleSubmit() async {
+    setState(() {
+      isUploading = true;
+    });
+    await compressImage();
+    String mediaUrl = await uploadImage(file);
+    createPostInFirestore(
+      mediaUrl: mediaUrl,
+      location: locationController.text,
+      description: captionController.text,
+    );
+  }
+
   Scaffold buildUploadForm() {
     return Scaffold(
       appBar: AppBar(
@@ -114,7 +183,7 @@ class _UploadState extends State<Upload> {
         ),
         actions: [
           FlatButton(
-            onPressed: () => print('Post pressed'),
+            onPressed: isUploading ? null : () => handleSubmit(),
             child: Text(
               "Post",
               style: TextStyle(
@@ -128,6 +197,7 @@ class _UploadState extends State<Upload> {
       ),
       body: ListView(
         children: <Widget>[
+          isUploading ? linearProgress() : Text(""),
           Container(
             height: 220.0,
             width: MediaQuery.of(context).size.width * 0.8,
@@ -156,6 +226,7 @@ class _UploadState extends State<Upload> {
             title: Container(
               width: 250.0,
               child: TextField(
+                controller: captionController,
                 decoration: InputDecoration(
                     hintText: "Write a caption...", border: InputBorder.none),
               ),
@@ -167,6 +238,7 @@ class _UploadState extends State<Upload> {
             title: Container(
               width: 250.0,
               child: TextField(
+                controller: locationController,
                 decoration: InputDecoration(
                   hintText: "Where was this photo taken?",
                   border: InputBorder.none,
@@ -189,7 +261,7 @@ class _UploadState extends State<Upload> {
                 borderRadius: BorderRadius.circular(30.0),
               ),
               color: Colors.blue,
-              onPressed: () => print('Get user location'),
+              onPressed: getUserLocation,
               icon: Icon(
                 Icons.my_location,
                 color: Colors.white,
@@ -199,6 +271,20 @@ class _UploadState extends State<Upload> {
         ],
       ),
     );
+  }
+
+  getUserLocation() async {
+    Geolocator geolocator = Geolocator()..forceAndroidLocationManager = true;
+    GeolocationStatus geolocationStatus  = await geolocator.checkGeolocationPermissionStatus();
+    
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
+    Placemark placemark = placemarks[0];
+    String completeAddress =
+        '${placemark.subThoroughfare} ${placemark.thoroughfare}, ${placemark.subLocality} ${placemark.locality}, ${placemark.subAdministrativeArea}, ${placemark.administrativeArea} ${placemark.postalCode}, ${placemark.country}';
+    print(completeAddress);
+    String formattedAddress = "${placemark.locality}, ${placemark.country}";
+    locationController.text = formattedAddress;
   }
 
   @override
