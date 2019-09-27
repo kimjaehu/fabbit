@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "402485530720",
+    "firebase_url": "https://fabbit-366fc.firebaseio.com",
+    "project_id": "fabbit-366fc",
+    "storage_bucket": "fabbit-366fc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:402485530720:android:3b4f50be949c013242f305",
+        "android_client_info": {
+          "package_name": "com.kosmicdust.fabbit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "402485530720-j4ld2ruh6oecl42n06k515rd7mgmg2da.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kosmicdust.fabbit",
+            "certificate_hash": "6c95b872c660dfa18a7547b9dff5cb4290da232d"
+          }
+        },
+        {
+          "client_id": "402485530720-pmt5kgbgkg0gt6k0orn540tgn1lnl7a3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBg43koOJLeqz05BaMkDxLRtgG96a8XMR0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "402485530720-pmt5kgbgkg0gt6k0orn540tgn1lnl7a3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
