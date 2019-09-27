@@ -8,6 +8,7 @@ import 'package:fabbit/widgets/post_tile.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:fabbit/pages/home.dart';
+import 'package:flutter_svg/svg.dart';
 
 class Profile extends StatefulWidget {
   final String profileId;
@@ -195,7 +196,30 @@ class _ProfileState extends State<Profile> {
   buildProfilePosts() {
     if (isLoading) {
       return circularProgress();
-    } else if (postOrientation == "grid") {
+    } else if (posts.isEmpty) {
+      return Container(
+      color: Theme.of(context).accentColor.withOpacity(0.6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          SvgPicture.asset('assets/images/no_content.svg', height: 260.0),
+          Padding(
+            padding: EdgeInsets.only(top: 20.0),
+              child: Text(
+                "No Posts",
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 40.0,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
+          )
+        ],
+      ),
+    );
+    }
+  
+    else if (postOrientation == "grid") {
       List<GridTile> gridTiles = [];
       posts.forEach((post) {
         gridTiles.add(GridTile(child: PostTile(post)));
