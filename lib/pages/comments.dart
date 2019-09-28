@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fabbit/pages/activity_feed.dart';
 import 'package:fabbit/pages/home.dart';
 import 'package:fabbit/widgets/header.dart';
 import 'package:fabbit/widgets/progress.dart';
@@ -48,11 +49,11 @@ class CommentsState extends State<Comments> {
         if (!snapshot.hasData) {
           circularProgress();
         }
-        List<Comment> comments =[];
+        List<Comment> comments = [];
         snapshot.data.documents.forEach((doc) {
           comments.add(Comment.fromDocument(doc));
         });
-        return ListView(children:comments);
+        return ListView(children: comments);
       },
     );
   }
@@ -65,6 +66,19 @@ class CommentsState extends State<Comments> {
       "avatarUrl": currentUser.photoUrl,
       "userId": currentUser.id,
     });
+    bool isNotPostOwner = postOwnerId != currentUser.id;
+    if (isNotPostOwner) {
+      activityFeedRef.document(postOwnerId).collection('feedItems').add({
+        "type": "comment",
+        "commentData": commentController.text,
+        "timestamp": timestamp,
+        "postId": postId,
+        "username": currentUser.username,
+        "userId": currentUser.id,
+        "userProfileImg": currentUser.photoUrl,
+        "mediaUrl": postMediaUrl,
+      });
+    }
     commentController.clear();
   }
 
