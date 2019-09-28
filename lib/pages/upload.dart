@@ -22,13 +22,13 @@ class Upload extends StatefulWidget {
   _UploadState createState() => _UploadState();
 }
 
-class _UploadState extends State<Upload> {
+class _UploadState extends State<Upload>
+    with AutomaticKeepAliveClientMixin<Upload> {
   TextEditingController locationController = TextEditingController();
   TextEditingController captionController = TextEditingController();
   File file;
   bool isUploading = false;
   String postId = Uuid().v4();
-
 
   handleTakePhoto() async {
     Navigator.pop(context);
@@ -274,11 +274,10 @@ class _UploadState extends State<Upload> {
   }
 
   getUserLocation() async {
-    Geolocator geolocator = Geolocator()..forceAndroidLocationManager = true;
-    GeolocationStatus geolocationStatus  = await geolocator.checkGeolocationPermissionStatus();
-    
-    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    List<Placemark> placemarks = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
+    Position position = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks = await Geolocator()
+        .placemarkFromCoordinates(position.latitude, position.longitude);
     Placemark placemark = placemarks[0];
     String completeAddress =
         'subthroughfare: ${placemark.subThoroughfare} throughfare: ${placemark.thoroughfare}, sublocality: ${placemark.subLocality} locality: ${placemark.locality}, subAdministrativeArea:${placemark.subAdministrativeArea},administrativeArea: ${placemark.administrativeArea} postalCode:${placemark.postalCode}, country:${placemark.country}';
@@ -287,8 +286,12 @@ class _UploadState extends State<Upload> {
     locationController.text = formattedAddress;
   }
 
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+    
     return file == null ? buildSplashScreen() : buildUploadForm();
   }
 }
