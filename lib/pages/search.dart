@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';
+import 'package:fabbit/pages/activity_feed.dart';
 import 'package:fabbit/pages/home.dart';
 import 'package:fabbit/widgets/custom_image.dart';
 import 'package:fabbit/widgets/progress.dart';
@@ -122,7 +123,7 @@ class UserResult extends StatelessWidget {
       child: Column(
         children: <Widget>[
           GestureDetector(
-            onTap: () => print('tapped'),
+            onTap: () => showProfile(context, profileId: user.id),
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.grey,

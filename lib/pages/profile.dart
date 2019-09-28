@@ -23,6 +23,7 @@ class _ProfileState extends State<Profile> {
   final String currentUserId = currentUser?.id;
   String postOrientation = "grid";
   bool isLoading = false;
+  bool isFollowing = false;
   int postCount = 0;
   List<Post> posts = [];
 
@@ -91,12 +92,17 @@ class _ProfileState extends State<Profile> {
           height: 27.0,
           child: Text(
             text,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: isFollowing ? Colors.black : Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Colors.blue,
-            border: Border.all(color: Colors.blue),
+            color: isFollowing ? Colors.white : Colors.blue,
+            border: Border.all(
+              color: isFollowing ? Colors.grey : Colors.blue,
+            ),
             borderRadius: BorderRadius.circular(5.0),
           ),
         ),
@@ -112,8 +118,22 @@ class _ProfileState extends State<Profile> {
         text: "Edit Profile",
         function: editProfile,
       );
+    } else if (isFollowing) {
+      return buildButton(
+        text: "Unfollow",
+        function: handleUnfollowUser,
+      );
+    } else if (!isFollowing) {
+      return buildButton(
+        text: "Follow",
+        function: handleFollowUser,
+      );
     }
   }
+
+  handleUnfollowUser() {}
+
+  handleFollowUser() {}
 
   buildProfileHeader() {
     return FutureBuilder(
@@ -198,28 +218,25 @@ class _ProfileState extends State<Profile> {
       return circularProgress();
     } else if (posts.isEmpty) {
       return Container(
-      color: Theme.of(context).accentColor.withOpacity(0.6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          SvgPicture.asset('assets/images/no_content.svg', height: 260.0),
-          Padding(
-            padding: EdgeInsets.only(top: 20.0),
+        color: Theme.of(context).accentColor.withOpacity(0.6),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SvgPicture.asset('assets/images/no_content.svg', height: 260.0),
+            Padding(
+              padding: EdgeInsets.only(top: 20.0),
               child: Text(
                 "No Posts",
                 style: TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 40.0,
-                  fontWeight: FontWeight.bold
-                ),
+                    color: Colors.redAccent,
+                    fontSize: 40.0,
+                    fontWeight: FontWeight.bold),
               ),
-          )
-        ],
-      ),
-    );
-    }
-  
-    else if (postOrientation == "grid") {
+            )
+          ],
+        ),
+      );
+    } else if (postOrientation == "grid") {
       List<GridTile> gridTiles = [];
       posts.forEach((post) {
         gridTiles.add(GridTile(child: PostTile(post)));
@@ -249,14 +266,18 @@ class _ProfileState extends State<Profile> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         IconButton(
-          onPressed: ()=> setPostOrientation("grid"),
+          onPressed: () => setPostOrientation("grid"),
           icon: Icon(Icons.grid_on),
-          color: postOrientation == 'grid' ? Theme.of(context).primaryColor : Colors.grey,
+          color: postOrientation == 'grid'
+              ? Theme.of(context).primaryColor
+              : Colors.grey,
         ),
         IconButton(
-          onPressed: ()=> setPostOrientation("list"),
+          onPressed: () => setPostOrientation("list"),
           icon: Icon(Icons.list),
-          color: postOrientation == 'list' ? Theme.of(context).primaryColor : Colors.grey,
+          color: postOrientation == 'list'
+              ? Theme.of(context).primaryColor
+              : Colors.grey,
         ),
       ],
     );
