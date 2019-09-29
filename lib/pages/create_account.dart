@@ -12,6 +12,7 @@ class _CreateAccountState extends State<CreateAccount> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
   String username;
+  String userLocation;
 
   submit() {
     final form = _formKey.currentState;

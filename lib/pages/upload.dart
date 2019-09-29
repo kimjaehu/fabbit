@@ -281,7 +281,7 @@ class _UploadState extends State<Upload>
     Placemark placemark = placemarks[0];
     String completeAddress =
         'subthroughfare: ${placemark.subThoroughfare} throughfare: ${placemark.thoroughfare}, sublocality: ${placemark.subLocality} locality: ${placemark.locality}, subAdministrativeArea:${placemark.subAdministrativeArea},administrativeArea: ${placemark.administrativeArea} postalCode:${placemark.postalCode}, country:${placemark.country}';
-    print(completeAddress);
+    // print(completeAddress);
     String formattedAddress = "${placemark.locality}, ${placemark.country}";
     locationController.text = formattedAddress;
   }
@@ -291,7 +291,7 @@ class _UploadState extends State<Upload>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
+
     return file == null ? buildSplashScreen() : buildUploadForm();
   }
 }

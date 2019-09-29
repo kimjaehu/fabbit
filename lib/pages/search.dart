@@ -91,7 +91,7 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
           User user = User.fromDocument(doc);
           UserResult searchResult = UserResult(user);
           searchResults.add(searchResult);
-          print(user);
+          // print(user);
         });
         return ListView(
           children: searchResults,
@@ -105,7 +105,7 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor.withOpacity(0.7),
       appBar: buildSearchField(),

@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:fabbit/models/user.dart';
+import 'package:fabbit/pages/upload.dart';
+import 'package:fabbit/pages/create_account_location.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,7 +13,7 @@ import 'package:fabbit/pages/create_account.dart';
 import 'package:fabbit/pages/profile.dart';
 import 'package:fabbit/pages/search.dart';
 import 'package:fabbit/pages/timeline.dart';
-import 'package:fabbit/pages/upload.dart';
+
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 final StorageReference storageRef = FirebaseStorage.instance.ref();
@@ -23,6 +25,7 @@ final followersRef = Firestore.instance.collection('followers');
 final followingRef = Firestore.instance.collection('following');
 final timelineRef = Firestore.instance.collection('timeline');
 final DateTime timestamp = DateTime.now();
+
 User currentUser;
 
 class Home extends StatefulWidget {
@@ -36,10 +39,12 @@ class _HomeState extends State<Home> {
   bool isAuth = false;
   PageController pageController;
   int pageIndex = 0;
+  String location;
 
   @override
   void initState() {
     super.initState();
+    // getUserLocation();
     pageController = PageController();
     // Detect when user signed in
     googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
@@ -75,7 +80,7 @@ class _HomeState extends State<Home> {
     if (Platform.isIOS) getIOSPermission();
 
     _firebaseMessaging.getToken().then((token) {
-      print("firebase messaging token $token\n");
+      // print("firebase messaging token $token\n");
       usersRef
           .document(user.id)
           .updateData({"androidNotificationToken": token});
@@ -85,15 +90,19 @@ class _HomeState extends State<Home> {
       // onLaunch: (Map<String, dynamic> message) async {},
       // onResume: (Map<String, dynamic> message) async {},
       onMessage: (Map<String, dynamic> message) async {
-        print("on message: $message\n");
+        // print("on message: $message\n");
         final String recipientId = message['data']['recipient'];
         final String body = message['notification']['body'];
         if (recipientId == user.id) {
-          print("notification shown");
-          SnackBar snackbar = SnackBar(content: Text(body, overflow: TextOverflow.ellipsis,));
+          // print("notification shown");
+          SnackBar snackbar = SnackBar(
+              content: Text(
+            body,
+            overflow: TextOverflow.ellipsis,
+          ));
           _scaffoldKey.currentState.showSnackBar(snackbar);
         }
-        print("notification not shown");
+        // print("notification not shown");
       },
     );
   }
@@ -102,7 +111,7 @@ class _HomeState extends State<Home> {
     _firebaseMessaging.requestNotificationPermissions(
         IosNotificationSettings(alert: true, badge: true, sound: true));
     _firebaseMessaging.onIosSettingsRegistered.listen((settings) {
-      print("settings registered: $settings");
+      // print("settings registered: $settings");
     });
   }
 
@@ -111,10 +120,15 @@ class _HomeState extends State<Home> {
     final GoogleSignInAccount user = googleSignIn.currentUser;
     DocumentSnapshot doc = await usersRef.document(user.id).get();
     if (!doc.exists) {
+      // print(location);
       // 2. if the user doesn't exist, take user to the create account page
-      final username = await Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CreateAccount()));
-
+      // final location = await getUserLocation();
+      // final username = await Navigator.push(
+      //     context, MaterialPageRoute(builder: (context) => CreateAccount()));
+      final userData = await Navigator.push(context,
+          MaterialPageRoute(builder: (context) => CreateAccountLocation()));
+      final username = userData.username;
+      final location = userData.userLocation;
       // 3. get username from create account, use it to make new user document in users collection
       usersRef.document(user.id).setData({
         "id": user.id,
@@ -123,7 +137,8 @@ class _HomeState extends State<Home> {
         "email": user.email,
         "displayName": user.displayName,
         "bio": "",
-        "timestamp": timestamp
+        "location": location,
+        "timestamp": timestamp,
       });
       // make new user their own follower ( to include their posts in their timeline)
       await followersRef
@@ -135,8 +150,8 @@ class _HomeState extends State<Home> {
       doc = await usersRef.document(user.id).get();
     }
     currentUser = User.fromDocument(doc);
-    print(currentUser);
-    print(currentUser.username);
+    // print(currentUser);
+    // print(currentUser.username);
   }
 
   @override
