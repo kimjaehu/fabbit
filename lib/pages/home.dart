@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/pages/upload.dart';
-import 'package:fabbit/pages/create_account_location.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -39,12 +38,10 @@ class _HomeState extends State<Home> {
   bool isAuth = false;
   PageController pageController;
   int pageIndex = 0;
-  String location;
 
   @override
   void initState() {
     super.initState();
-    // getUserLocation();
     pageController = PageController();
     // Detect when user signed in
     googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
@@ -120,15 +117,9 @@ class _HomeState extends State<Home> {
     final GoogleSignInAccount user = googleSignIn.currentUser;
     DocumentSnapshot doc = await usersRef.document(user.id).get();
     if (!doc.exists) {
-      // print(location);
       // 2. if the user doesn't exist, take user to the create account page
-      // final location = await getUserLocation();
-      // final username = await Navigator.push(
-      //     context, MaterialPageRoute(builder: (context) => CreateAccount()));
-      final userData = await Navigator.push(context,
-          MaterialPageRoute(builder: (context) => CreateAccountLocation()));
-      final username = userData.username;
-      final location = userData.userLocation;
+      final username = await Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CreateAccount()));
       // 3. get username from create account, use it to make new user document in users collection
       usersRef.document(user.id).setData({
         "id": user.id,
@@ -137,7 +128,6 @@ class _HomeState extends State<Home> {
         "email": user.email,
         "displayName": user.displayName,
         "bio": "",
-        "location": location,
         "timestamp": timestamp,
       });
       // make new user their own follower ( to include their posts in their timeline)
@@ -199,10 +189,10 @@ class _HomeState extends State<Home> {
         onTap: onTap,
         activeColor: Theme.of(context).primaryColor,
         items: [
+          BottomNavigationBarItem(icon: Icon(Icons.shop_two)),
           BottomNavigationBarItem(icon: Icon(Icons.whatshot)),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_active)),
           BottomNavigationBarItem(icon: Icon(Icons.photo_camera, size: 35.0)),
-          BottomNavigationBarItem(icon: Icon(Icons.search)),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications_active)),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
         ],
       ),

@@ -32,7 +32,8 @@ class _CreateAccountState extends State<CreateAccount> {
   Widget build(BuildContext parentContext) {
     return Scaffold(
         key: _scaffoldKey,
-        appBar: header(context, titleText: "Setup your profile", removeBackButton: true),
+        appBar: header(context,
+            titleText: "Setup your profile", removeBackButton: true),
         body: ListView(
           children: <Widget>[
             Container(

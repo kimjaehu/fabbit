@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:fabbit/widgets/header.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,18 +8,16 @@ class CreateAccountLocation extends StatefulWidget {
   CreateAccountLocationState createState() => CreateAccountLocationState();
 }
 
-class UserData{
+class UserData {
   String username;
   String userLocation;
+  double latitude;
+  double longitude;
 
-  UserData(
-    this.username, this.userLocation,
-  );
+  UserData(this.username, this.userLocation, this.latitude, this.longitude);
 }
 
 class CreateAccountLocationState extends State<CreateAccountLocation> {
-
-
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   // final _formKey = GlobalKey<FormState>();
   TextEditingController usernameController = TextEditingController();
@@ -28,9 +25,12 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
   bool isLoading = false;
   bool _usernameValid = true;
   bool _userLocationValid = true;
+  bool _addressValid = true;
+  double latitude;
+  double longitude;
 
   @override
-  void initState() { 
+  void initState() {
     super.initState();
     getUserLocation();
   }
@@ -49,6 +49,7 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
   // }
 
   getUserLocation() async {
+    _addressValid = true;
     Position position = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     List<Placemark> placemarks = await Geolocator()
@@ -57,11 +58,29 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
     String completeAddress =
         'subthroughfare: ${placemark.subThoroughfare} throughfare: ${placemark.thoroughfare}, sublocality: ${placemark.subLocality} locality: ${placemark.locality}, subAdministrativeArea:${placemark.subAdministrativeArea},administrativeArea: ${placemark.administrativeArea} postalCode:${placemark.postalCode}, country:${placemark.country}';
     print(completeAddress);
-    String formattedAddress = "${placemark.locality}, ${placemark.administrativeArea}";
-    // setState(() {
-    //   location = formattedAddress;
-    // });
+    String formattedAddress =
+        "${placemark.locality}, ${placemark.administrativeArea}";
     userLocationController.text = formattedAddress;
+    latitude = position.latitude;
+    longitude = position.longitude;
+  }
+
+  convertUserLocationToCoordinates(String userLocationText) async {
+    _addressValid = true;
+    print('previous $_addressValid, $userLocationText');
+    List<Placemark> placemarks = await Geolocator()
+        .placemarkFromAddress(userLocationText);
+        
+    print('after $_addressValid');
+    if (_addressValid) {
+      Placemark placemark = placemarks[0];
+      latitude = placemark.position.latitude;
+      longitude = placemark.position.longitude;
+    }
+  }
+
+  clearLocation() {
+    userLocationController.clear();
   }
 
   Column buildUsernameField() {
@@ -78,8 +97,13 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
         TextField(
           controller: usernameController,
           decoration: InputDecoration(
-              hintText: "Create a username",
-              errorText: _usernameValid ? null : "Display Name is too short."),
+            hintText: "Create a username",
+            errorText: _usernameValid ? null : "Display Name is too short.",
+            prefixIcon: Icon(
+              Icons.account_box,
+              size: 28.0,
+            ),
+          ),
         )
       ],
     );
@@ -92,47 +116,66 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
         Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "Your Location",
+            "Set Your Location",
             style: TextStyle(color: Colors.grey),
           ),
         ),
         TextField(
           controller: userLocationController,
           decoration: InputDecoration(
-              hintText: "Enter your location (city, state)",
-              errorText: _userLocationValid ? null : "Location is invalid."),
-        )
+            hintText: "Set your location (city, state/province)",
+            errorText: _userLocationValid ? null : "Location is invalid.",
+            prefixIcon: IconButton(
+              icon: Icon(Icons.clear),
+              onPressed: clearLocation,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                Icons.my_location,
+                color: Theme.of(context).accentColor,
+              ),
+              onPressed: getUserLocation,
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  submit() {
+  submit() async {
     setState(() {
       usernameController.text.trim().length < 3 ||
               usernameController.text.isEmpty
           ? _usernameValid = false
           : _usernameValid = true;
-      userLocationController.text.trim().length > 100
+      userLocationController.text.trim().length > 30
           ? _userLocationValid = false
           : _userLocationValid = true;
     });
 
     if (_usernameValid && _userLocationValid) {
+      await convertUserLocationToCoordinates(userLocationController.text);
+
+      if (_addressValid) {
+        print('latitude: $latitude, longitude: $longitude');
+        SnackBar snackbar = SnackBar(
+          content: Text("Welcome ${usernameController.text}."),
+        );
+        _scaffoldKey.currentState.showSnackBar(snackbar);
+        UserData userData = new UserData(usernameController.text,
+            userLocationController.text, latitude, longitude);
+        print('userData $userData');
+        Timer(Duration(seconds: 1), () {
+          Navigator.of(context).pop(userData);
+        });
+      }
       // usersRef.document(widget.currentUserId).updateData({
       //   "displayName": displayNameController.text,
       //   "bio": bioController.text,
       // });
       // SnackBar snackbar = SnackBar(content: Text("Profile updated."),);
       // _scaffoldKey.currentState.showSnackBar(snackbar);
-      SnackBar snackbar = SnackBar(
-        content: Text("Welcome ${usernameController.text}."),
-      );
-      _scaffoldKey.currentState.showSnackBar(snackbar);
-      UserData userData = new UserData(usernameController.text, userLocationController.text);
-      print('userData $userData');
-      Timer(Duration(seconds: 1), () {
-        Navigator.of(context).pop(userData);
-      });
+
     }
   }
 

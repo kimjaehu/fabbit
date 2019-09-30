@@ -16,6 +16,8 @@ class Post extends StatefulWidget {
   final String ownerId;
   final String username;
   final String location;
+  final String latitude;
+  final String longitude;
   final String description;
   final String mediaUrl;
   final dynamic likes;
@@ -25,6 +27,8 @@ class Post extends StatefulWidget {
     this.ownerId,
     this.username,
     this.location,
+    this.latitude,
+    this.longitude,
     this.description,
     this.mediaUrl,
     this.likes,
@@ -36,6 +40,8 @@ class Post extends StatefulWidget {
       ownerId: doc['ownerId'],
       username: doc['username'],
       location: doc['location'],
+      latitude: doc['latitude'],
+      longitude: doc['longitude'],
       description: doc['description'],
       mediaUrl: doc['mediaUrl'],
       likes: doc['likes'],
@@ -63,6 +69,8 @@ class Post extends StatefulWidget {
         ownerId: this.ownerId,
         username: this.username,
         location: this.location,
+        latitude: this.latitude,
+        longitude: this.longitude,
         description: this.description,
         mediaUrl: this.mediaUrl,
         likes: this.likes,
@@ -76,6 +84,8 @@ class _PostState extends State<Post> {
   final String ownerId;
   final String username;
   final String location;
+  final String latitude;
+  final String longitude;
   final String description;
   final String mediaUrl;
   bool showHeart = false;
@@ -88,6 +98,8 @@ class _PostState extends State<Post> {
     this.ownerId,
     this.username,
     this.location,
+    this.latitude,
+    this.longitude,
     this.description,
     this.mediaUrl,
     this.likes,

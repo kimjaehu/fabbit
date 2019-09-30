@@ -26,6 +26,8 @@ class _UploadState extends State<Upload>
     with AutomaticKeepAliveClientMixin<Upload> {
   TextEditingController locationController = TextEditingController();
   TextEditingController captionController = TextEditingController();
+  TextEditingController latitudeController = TextEditingController();
+  TextEditingController longitudeController = TextEditingController();
   File file;
   bool isUploading = false;
   String postId = Uuid().v4();
@@ -129,7 +131,7 @@ class _UploadState extends State<Upload>
   }
 
   createPostInFirestore(
-      {String mediaUrl, String location, String description}) {
+      {String mediaUrl, String location, String description, double longitude, double latitude}) {
     postsRef
         .document(widget.currentUser.id)
         .collection("userPosts")
@@ -141,11 +143,15 @@ class _UploadState extends State<Upload>
       "mediaUrl": mediaUrl,
       "description": description,
       "location": location,
+      "longitude": longitude,
+      "latitude": latitude,
       "timestamp": timestamp,
       "likes": {},
     });
     captionController.clear();
     locationController.clear();
+    latitudeController.clear();
+    longitudeController.clear();
     setState(() {
       file = null;
       isUploading = false;
@@ -163,6 +169,8 @@ class _UploadState extends State<Upload>
       mediaUrl: mediaUrl,
       location: locationController.text,
       description: captionController.text,
+      latitude: double.parse(latitudeController.text),
+      longitude: double.parse(longitudeController.text),
     );
   }
 
@@ -284,6 +292,8 @@ class _UploadState extends State<Upload>
     // print(completeAddress);
     String formattedAddress = "${placemark.locality}, ${placemark.country}";
     locationController.text = formattedAddress;
+    latitudeController.text = (position.latitude).toString();
+    longitudeController.text = (position.longitude).toString();
   }
 
   bool get wantKeepAlive => true;
