@@ -3,15 +3,21 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image/image.dart' as Im;
-
+import 'package:fabbit/credentials.dart';
+import 'package:dio/dio.dart';
 import 'package:fabbit/pages/home.dart';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/widgets/progress.dart';
+import 'package:fabbit/models/dropdown.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+
+final Geoflutterfire geo = Geoflutterfire();
 
 class Upload extends StatefulWidget {
   final User currentUser;
@@ -24,13 +30,24 @@ class Upload extends StatefulWidget {
 
 class _UploadState extends State<Upload>
     with AutomaticKeepAliveClientMixin<Upload> {
+  Geolocator geolocator = Geolocator();
   TextEditingController locationController = TextEditingController();
   TextEditingController captionController = TextEditingController();
-  TextEditingController latitudeController = TextEditingController();
-  TextEditingController longitudeController = TextEditingController();
   File file;
   bool isUploading = false;
+  bool _locationValid = true;
   String postId = Uuid().v4();
+  Position userLocation;
+  List<Dropdown> _placesList;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation().then((position) {
+      userLocation = position;
+      _placesList = [];
+    });
+  }
 
   handleTakePhoto() async {
     Navigator.pop(context);
@@ -131,7 +148,12 @@ class _UploadState extends State<Upload>
   }
 
   createPostInFirestore(
-      {String mediaUrl, String location, String description, double longitude, double latitude}) {
+      {String mediaUrl,
+      String location,
+      String description,
+      double longitude,
+      double latitude,
+      GeoFirePoint userLocation}) {
     postsRef
         .document(widget.currentUser.id)
         .collection("userPosts")
@@ -143,15 +165,12 @@ class _UploadState extends State<Upload>
       "mediaUrl": mediaUrl,
       "description": description,
       "location": location,
-      "longitude": longitude,
-      "latitude": latitude,
+      "position": userLocation.data,
       "timestamp": timestamp,
       "likes": {},
     });
     captionController.clear();
     locationController.clear();
-    latitudeController.clear();
-    longitudeController.clear();
     setState(() {
       file = null;
       isUploading = false;
@@ -162,15 +181,63 @@ class _UploadState extends State<Upload>
   handleSubmit() async {
     setState(() {
       isUploading = true;
+      locationController.text.isEmpty ? _locationValid = false : _locationValid = true;
     });
+
+    if (_locationValid) {
     await compressImage();
+    GeoFirePoint userLocationPoint = geo.point(
+        latitude: userLocation.latitude, longitude: userLocation.longitude);
     String mediaUrl = await uploadImage(file);
     createPostInFirestore(
       mediaUrl: mediaUrl,
       location: locationController.text,
       description: captionController.text,
-      latitude: double.parse(latitudeController.text),
-      longitude: double.parse(longitudeController.text),
+      userLocation: userLocationPoint,
+    );
+    }
+   setState(() {
+      isUploading = false;
+    });
+  }
+
+  getLocationResults(String input) async {
+    // if (input.isEmpty) {
+    //   return;
+    // }
+    // String baseURL =
+    //     'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+    // int radius = 10000;
+    // double latitude = userLocation.latitude;
+    // double longitude = userLocation.longitude;
+    // // String request = '$baseURL?input=$input&location=$latitude,$longitude&key=$PLACES_API_KEY&radius=$radius&strictbounds&sessiontoken=$postId';
+    // String request =
+    //     '$baseURL?input=$input&location=43.5890, -79.6441&key=$PLACES_API_KEY&radius=$radius&strictbounds&sessiontoken=$postId';
+
+    // Response response = await Dio().get(request);
+    // print(response);
+    // final predictions = response.data['predictions'];
+
+    // List<Dropdown> _displayResults = [];
+
+    // predictions.forEach((prediction) {
+    //   String primaryText = prediction['structured_formatting']['main_text'];
+    //   String secondaryText =
+    //       prediction['structured_formatting']['secondary_text'];
+    //   _displayResults.add(Dropdown(primaryText, secondaryText));
+    // });
+
+    // setState(() {
+    //   _placesList = _displayResults;
+    // });
+  }
+
+  Widget buildSuggestedCard(BuildContext context, int index) {
+    return Card(
+      child: ListTile(
+          title: Text(
+        _placesList[index].primaryText,
+      )),
     );
   }
 
@@ -236,7 +303,7 @@ class _UploadState extends State<Upload>
               child: TextField(
                 controller: captionController,
                 decoration: InputDecoration(
-                    hintText: "Write a caption...", border: InputBorder.none),
+                    hintText: "What's it about?...", border: InputBorder.none),
               ),
             ),
           ),
@@ -248,52 +315,57 @@ class _UploadState extends State<Upload>
               child: TextField(
                 controller: locationController,
                 decoration: InputDecoration(
-                  hintText: "Where was this photo taken?",
+                  hintText: "Enter the location...",
+                  errorText: _locationValid ? null : "Location is invalid.",
+
                   border: InputBorder.none,
                 ),
+                onChanged: (text) {
+                  getLocationResults(text);
+                },
               ),
             ),
           ),
-          Container(
-            width: 200.0,
-            height: 100.0,
-            alignment: Alignment.center,
-            child: RaisedButton.icon(
-              label: Text(
-                "Use Current Location",
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0),
-              ),
-              color: Colors.blue,
-              onPressed: getUserLocation,
-              icon: Icon(
-                Icons.my_location,
-                color: Colors.white,
-              ),
-            ),
-          )
+          
+          // Container(
+          //   width: 200.0,
+          //   height: 100.0,
+          //   alignment: Alignment.center,
+          //   child: RaisedButton.icon(
+          //     label: Text(
+          //       "Use Current Location",
+          //       style: TextStyle(
+          //         color: Colors.white,
+          //       ),
+          //     ),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(30.0),
+          //     ),
+          //     color: Colors.blue,
+          //     onPressed: _getUserLocation,
+          //     icon: Icon(
+          //       Icons.my_location,
+          //       color: Colors.white,
+          //     ),
+          //   ),
+          // )
         ],
       ),
     );
   }
 
-  getUserLocation() async {
-    Position position = await Geolocator()
+  Future<Position> _getUserLocation() async {
+    var position = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    List<Placemark> placemarks = await Geolocator()
-        .placemarkFromCoordinates(position.latitude, position.longitude);
-    Placemark placemark = placemarks[0];
-    String completeAddress =
-        'subthroughfare: ${placemark.subThoroughfare} throughfare: ${placemark.thoroughfare}, sublocality: ${placemark.subLocality} locality: ${placemark.locality}, subAdministrativeArea:${placemark.subAdministrativeArea},administrativeArea: ${placemark.administrativeArea} postalCode:${placemark.postalCode}, country:${placemark.country}';
-    // print(completeAddress);
-    String formattedAddress = "${placemark.locality}, ${placemark.country}";
-    locationController.text = formattedAddress;
-    latitudeController.text = (position.latitude).toString();
-    longitudeController.text = (position.longitude).toString();
+    return position;
+    // List<Placemark> placemarks = await Geolocator()
+    //     .placemarkFromCoordinates(position.latitude, position.longitude);
+    // Plamark placemark = placemarks[0];
+    // String completeAddress =
+    //     'subthroughfare: ${placemark.subThoroughfare} throughfare: ${placemark.thoroughfare}, sublocality: ${placemark.subLocality} locality: ${placemark.locality}, subAdministrativeArea:${placemark.subAdministrativeArea},administrativeArea: ${placemark.administrativeArea} postalCode:${placemark.postalCode}, country:${placemark.country}';
+    // // print(completeAddress);
+    // String formattedAddress = "${placemark.locality}, ${placemark.country}";
+    // locationController.text = formattedAddress;
   }
 
   bool get wantKeepAlive => true;

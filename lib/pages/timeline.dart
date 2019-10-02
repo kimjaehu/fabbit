@@ -97,7 +97,7 @@ class _TimelineState extends State<Timeline> {
                   children: <Widget>[
                     Icon(
                       Icons.person_add,
-                      color: Theme.of(context).primaryColor,
+                      color: Colors.grey[800],
                       size: 30.0,
                     ),
                     SizedBox(
@@ -106,8 +106,8 @@ class _TimelineState extends State<Timeline> {
                     Text(
                       "Users to Follow",
                       style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontSize: 30.0),
+                          color: Colors.grey[800],
+                          fontSize: 25.0),
                     ),
                   ],
                 ),

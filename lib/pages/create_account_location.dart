@@ -26,6 +26,7 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
   bool _usernameValid = true;
   bool _userLocationValid = true;
   bool _addressValid = true;
+  String location;
   double latitude;
   double longitude;
 
@@ -61,6 +62,7 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
     String formattedAddress =
         "${placemark.locality}, ${placemark.administrativeArea}";
     userLocationController.text = formattedAddress;
+    location = formattedAddress;
     latitude = position.latitude;
     longitude = position.longitude;
   }
@@ -69,7 +71,9 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
     _addressValid = true;
     print('previous $_addressValid, $userLocationText');
     List<Placemark> placemarks = await Geolocator()
-        .placemarkFromAddress(userLocationText);
+        .placemarkFromAddress(userLocationText).catchError((onError) {
+          _addressValid = false;
+        });
         
     print('after $_addressValid');
     if (_addressValid) {
@@ -155,15 +159,16 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
 
     if (_usernameValid && _userLocationValid) {
       await convertUserLocationToCoordinates(userLocationController.text);
-
       if (_addressValid) {
+        location = usernameController.text;
+      }
         print('latitude: $latitude, longitude: $longitude');
         SnackBar snackbar = SnackBar(
           content: Text("Welcome ${usernameController.text}."),
         );
         _scaffoldKey.currentState.showSnackBar(snackbar);
         UserData userData = new UserData(usernameController.text,
-            userLocationController.text, latitude, longitude);
+            location, latitude, longitude);
         print('userData $userData');
         Timer(Duration(seconds: 1), () {
           Navigator.of(context).pop(userData);
@@ -175,8 +180,6 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
       // });
       // SnackBar snackbar = SnackBar(content: Text("Profile updated."),);
       // _scaffoldKey.currentState.showSnackBar(snackbar);
-
-    }
   }
 
   @override

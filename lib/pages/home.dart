@@ -5,16 +5,19 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/pages/activity_feed.dart';
-import 'package:fabbit/pages/create_account.dart';
+// import 'package:fabbit/pages/create_account.dart';
+import 'package:fabbit/pages/create_account_location.dart';
 import 'package:fabbit/pages/profile.dart';
 import 'package:fabbit/pages/search.dart';
 import 'package:fabbit/pages/timeline.dart';
 
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
+final Geoflutterfire geo = Geoflutterfire();
 final StorageReference storageRef = FirebaseStorage.instance.ref();
 final usersRef = Firestore.instance.collection('users');
 final postsRef = Firestore.instance.collection('posts');
@@ -118,16 +121,25 @@ class _HomeState extends State<Home> {
     DocumentSnapshot doc = await usersRef.document(user.id).get();
     if (!doc.exists) {
       // 2. if the user doesn't exist, take user to the create account page
-      final username = await Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CreateAccount()));
+      // final username = await Navigator.push(
+      //     context, MaterialPageRoute(builder: (context) => CreateAccount()));
+      final userData = await Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CreateAccountLocation()));
+      GeoFirePoint userLocation = geo.point(latitude: userData.latitude, longitude: userData.longitude);
+      print(userLocation);
       // 3. get username from create account, use it to make new user document in users collection
       usersRef.document(user.id).setData({
         "id": user.id,
-        "username": username,
+        "username": userData.username,
         "photoUrl": user.photoUrl,
         "email": user.email,
         "displayName": user.displayName,
         "bio": "",
+        "position": userLocation.data,
+        "location": userData.userLocation,
+        // "latitude": userData.latitude,
+        //"longitude": userData.longitude,
+        // "position": GeoPoint(userData.latitude, userData.longitude),
         "timestamp": timestamp,
       });
       // make new user their own follower ( to include their posts in their timeline)
@@ -174,10 +186,10 @@ class _HomeState extends State<Home> {
       key: _scaffoldKey,
       body: PageView(
         children: <Widget>[
-          Timeline(currentUser: currentUser),
-          ActivityFeed(),
-          Upload(currentUser: currentUser),
           Search(),
+          Timeline(currentUser: currentUser),
+          Upload(currentUser: currentUser),
+          ActivityFeed(),
           Profile(profileId: currentUser?.id),
         ],
         controller: pageController,

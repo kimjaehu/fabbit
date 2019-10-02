@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/pages/activity_feed.dart';
 import 'package:fabbit/pages/home.dart';
-import 'package:fabbit/widgets/custom_image.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';

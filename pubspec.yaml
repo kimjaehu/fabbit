@@ -28,6 +28,9 @@ dependencies:
   image: ^2.1.4
   uuid: ^2.0.2
   firebase_storage: ^3.0.6
+  geoflutterfire: ^2.0.3
+  dio: ^3.0.2
+  auto_size_text: ^2.1.0
   #iOS #
   #On iOS you'll need to add the NSLocationWhenInUseUsageDescription to your Info.plist file (located under ios/Runner/Base.lproj) in order to access the device's location. Simply open your Info.plist file and add the following:
   #<key>NSLocationWhenInUseUsageDescription</key>
@@ -36,6 +39,7 @@ dependencies:
   animator: ^1.0.0
   timeago: ^2.0.19
   firebase_messaging: ^5.1.6
+  autocomplete_textfield: ^1.7.3
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
