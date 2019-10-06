@@ -18,6 +18,8 @@ class Post extends StatefulWidget {
   final String location;
   final String description;
   final String mediaUrl;
+  final double originalPrice;
+  final double discountedPrice;
   final dynamic likes;
 
   Post({
@@ -27,6 +29,8 @@ class Post extends StatefulWidget {
     this.location,
     this.description,
     this.mediaUrl,
+    this.originalPrice,
+    this.discountedPrice,
     this.likes,
   });
 
@@ -38,6 +42,8 @@ class Post extends StatefulWidget {
       location: doc['location'],
       description: doc['description'],
       mediaUrl: doc['mediaUrl'],
+      originalPrice: doc['originalPrice'],
+      discountedPrice: doc['discountedPrice'],
       likes: doc['likes'],
     );
   }
@@ -65,6 +71,8 @@ class Post extends StatefulWidget {
         location: this.location,
         description: this.description,
         mediaUrl: this.mediaUrl,
+        originalPrice: this.originalPrice,
+        discountedPrice: this.discountedPrice,
         likes: this.likes,
         likeCount: getLikeCount(this.likes),
       );
@@ -77,6 +85,8 @@ class _PostState extends State<Post> {
   final String username;
   final String location;
   final String description;
+  final double originalPrice;
+  final double discountedPrice;
   final String mediaUrl;
   bool showHeart = false;
   int likeCount;
@@ -90,6 +100,8 @@ class _PostState extends State<Post> {
     this.location,
     this.description,
     this.mediaUrl,
+    this.originalPrice,
+    this.discountedPrice,
     this.likes,
     this.likeCount,
   });
@@ -244,6 +256,8 @@ class _PostState extends State<Post> {
         "userProfileImg": currentUser.photoUrl,
         "postId": postId,
         "mediaUrl": mediaUrl,
+        "originalPrice": originalPrice,
+        "discountedPrice": discountedPrice,
         "timestamp": timestamp,
       });
     }

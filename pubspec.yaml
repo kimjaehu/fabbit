@@ -31,6 +31,7 @@ dependencies:
   geoflutterfire: ^2.0.3
   dio: ^3.0.2
   auto_size_text: ^2.1.0
+  flutter_typeahead: ^1.6.1
   #iOS #
   #On iOS you'll need to add the NSLocationWhenInUseUsageDescription to your Info.plist file (located under ios/Runner/Base.lproj) in order to access the device's location. Simply open your Info.plist file and add the following:
   #<key>NSLocationWhenInUseUsageDescription</key>
