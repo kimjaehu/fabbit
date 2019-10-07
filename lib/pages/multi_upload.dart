@@ -111,14 +111,13 @@ class _MultiUploadState extends State<MultiUpload>
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    print('Result List: $resultList');
-
+    print('resultList $resultList');
     setState(() {
-      images = resultList;
+      resultList == null ? images = [] : images = resultList;
       if (error == null) _error = 'No Error Dectected';
     });
+
+    
   }
 
   selectImage(parentContext) {
@@ -177,6 +176,7 @@ class _MultiUploadState extends State<MultiUpload>
   clearImage() {
     setState(() {
       file = null;
+      images = [];
     });
   }
 
@@ -201,29 +201,34 @@ class _MultiUploadState extends State<MultiUpload>
 
   Future<List<String>> uploadImages() async {
     List<String> uploadUrls = [];
-
+    print('upload images started $images');
     images.map((Asset image) async {
+      print(image);
       ByteData byteData = await image.getByteData(quality: 50);
       List<int> imageData = byteData.buffer.asUint8List();
       String fileName = 'post_${postId}_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg';
       StorageUploadTask uploadTask =
         storageRef.child(fileName).putData(imageData);
-      StorageTaskSnapshot storageTaskSnapshot;
-      
-      StorageTaskSnapshot snapshot = await uploadTask.onComplete;
-      if (snapshot.error == null) {
-        storageTaskSnapshot = snapshot;
-        final String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
-        print('download URL: $downloadUrl');
-        uploadUrls.add(downloadUrl);
-
-        print('Upload success');
-      } else {
-        print('Error from image repo ${snapshot.error.toString()}');
-        throw ('This file is not an image');
-      }
+      StorageTaskSnapshot storageSnap = await uploadTask.onComplete;
+      String downloadUrl = await storageSnap.ref.getDownloadURL();
+      print('downloadUrl $downloadUrl');
+      uploadUrls.add(downloadUrl);
     });
+    //   StorageTaskSnapshot storageTaskSnapshot;
+    //   StorageTaskSnapshot snapshot = await uploadTask.onComplete;
+    //   if (snapshot.error == null) {
+    //     storageTaskSnapshot = snapshot;
+    //     final String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
+    //     print('download URL: $downloadUrl');
+    //     uploadUrls.add(downloadUrl);
 
+    //     print('Upload success');
+    //   } else {
+    //     print('Error from image repo ${snapshot.error.toString()}');
+    //     throw ('This file is not an image');
+    //   }
+    // });
+    print('upload images finished $uploadUrls');
     return uploadUrls;
   }
 
@@ -258,6 +263,7 @@ class _MultiUploadState extends State<MultiUpload>
     _placeId = "";
     setState(() {
       file = null;
+      images = [];
       isUploading = false;
       postId = Uuid().v4();
       sessionToken = Uuid().v4();
@@ -272,11 +278,13 @@ class _MultiUploadState extends State<MultiUpload>
           ? _locationValid = false
           : _locationValid = true;
     });
-
+    print('handle submit');
     if (_locationValid && _placeIdValid) {
-
+      print('uploading started');
       List<String> mediaUrls = await uploadImages();
-      print('media Urls = $mediaUrls');
+      mediaUrls.map((url) {
+        print('URL = $url');
+      });
       // GeoFirePoint storeLocation = await getStoreLocation();
       
       // await compressImage();
@@ -388,23 +396,23 @@ class _MultiUploadState extends State<MultiUpload>
       body: ListView(
         children: <Widget>[
           isUploading ? linearProgress() : Text(""),
-          Container(
-            height: 220.0,
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: FileImage(file),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // Container(
+          //   height: 220.0,
+          //   width: MediaQuery.of(context).size.width * 0.8,
+          //   child: Center(
+          //     child: AspectRatio(
+          //       aspectRatio: 16 / 9,
+          //       child: Container(
+          //         decoration: BoxDecoration(
+          //           image: DecorationImage(
+          //             fit: BoxFit.cover,
+          //             image: FileImage(file),
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
           Padding(
             padding: EdgeInsets.only(top: 10.0),
           ),
@@ -516,6 +524,6 @@ class _MultiUploadState extends State<MultiUpload>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return file == null ? buildSplashScreen() : buildUploadForm();
+    return images.isEmpty ? buildSplashScreen() : buildUploadForm();
   }
 }
