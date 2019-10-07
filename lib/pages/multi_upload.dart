@@ -201,44 +201,43 @@ class _MultiUploadState extends State<MultiUpload>
 
   Future<List<String>> uploadImages() async {
     List<String> uploadUrls = [];
-    print('upload images started $images');
-    images.map((Asset image) async {
-      print(image);
+    print('upload images started ${images.length}');
+    images.forEach((Asset image) async {
+      print('image: $image');
       ByteData byteData = await image.getByteData(quality: 50);
       List<int> imageData = byteData.buffer.asUint8List();
       String fileName = 'post_${postId}_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg';
       StorageUploadTask uploadTask =
         storageRef.child(fileName).putData(imageData);
-      StorageTaskSnapshot storageSnap = await uploadTask.onComplete;
-      String downloadUrl = await storageSnap.ref.getDownloadURL();
-      print('downloadUrl $downloadUrl');
-      uploadUrls.add(downloadUrl);
+      // StorageTaskSnapshot storageSnap = await uploadTask.onComplete;
+      // String downloadUrl = await storageSnap.ref.getDownloadURL();
+      // print('downloadUrl $downloadUrl');
+      // uploadUrls.add(downloadUrl);
+      StorageTaskSnapshot storageTaskSnapshot;
+      StorageTaskSnapshot snapshot = await uploadTask.onComplete;
+      if (snapshot.error == null) {
+        storageTaskSnapshot = snapshot;
+        final String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
+        uploadUrls.add(downloadUrl);
+        print('uploadUrls = ${uploadUrls.length}');
+        print('Upload success');
+      } else {
+        print('Error from image repo ${snapshot.error.toString()}');
+        throw ('This file is not an image');
+      }
     });
-    //   StorageTaskSnapshot storageTaskSnapshot;
-    //   StorageTaskSnapshot snapshot = await uploadTask.onComplete;
-    //   if (snapshot.error == null) {
-    //     storageTaskSnapshot = snapshot;
-    //     final String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
-    //     print('download URL: $downloadUrl');
-    //     uploadUrls.add(downloadUrl);
-
-    //     print('Upload success');
-    //   } else {
-    //     print('Error from image repo ${snapshot.error.toString()}');
-    //     throw ('This file is not an image');
-    //   }
-    // });
-    print('upload images finished $uploadUrls');
+    print('uploadUrls at the end = ${uploadUrls.length}');
     return uploadUrls;
   }
 
   createPostInFirestore(
-      {String mediaUrl,
+      {List<String> mediaUrls,
       String location,
       String description,
-      double originalPrice,
-      double discountedPrice,
+      String originalPrice,
+      String discountedPrice,
       GeoFirePoint storeLocation}) {
+        print('post start $mediaUrls');
     postsRef
         .document(widget.currentUser.id)
         .collection("userPosts")
@@ -247,7 +246,7 @@ class _MultiUploadState extends State<MultiUpload>
       "postId": postId,
       "ownerId": widget.currentUser.id,
       "username": widget.currentUser.username,
-      "mediaUrl": mediaUrl,
+      "mediaUrls": mediaUrls,
       "description": description,
       "location": location,
       "position": storeLocation.data,
@@ -256,6 +255,7 @@ class _MultiUploadState extends State<MultiUpload>
       "timestamp": timestamp,
       "likes": {},
     });
+    print('post finished $mediaUrls');
     _captionController.clear();
     _locationController.clear();
     _originalPriceController.clear();
@@ -282,21 +282,19 @@ class _MultiUploadState extends State<MultiUpload>
     if (_locationValid && _placeIdValid) {
       print('uploading started');
       List<String> mediaUrls = await uploadImages();
-      mediaUrls.map((url) {
-        print('URL = $url');
-      });
-      // GeoFirePoint storeLocation = await getStoreLocation();
+      print(mediaUrls.length);
+      GeoFirePoint storeLocation = await getStoreLocation();
       
       // await compressImage();
       // String mediaUrl = await uploadImage(file);
 
-      // createPostInFirestore(
-      //     mediaUrl: mediaUrl,
-      //     location: _locationController.text,
-      //     description: _captionController.text,
-      //     originalPrice: double.parse(_originalPriceController.text),
-      //     discountedPrice: double.parse(_discountedPriceController.text),
-      //     storeLocation: storeLocation);
+      createPostInFirestore(
+          mediaUrls: mediaUrls,
+          location: _locationController.text,
+          description: _captionController.text,
+          originalPrice: _originalPriceController.text,
+          discountedPrice: _discountedPriceController.text,
+          storeLocation: storeLocation);
     }
     
     setState(() {
