@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -18,20 +19,21 @@ import 'package:fabbit/models/dropdown.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'dart:async';
+import 'package:multi_image_picker/multi_image_picker.dart';
 
 final Geoflutterfire geo = Geoflutterfire();
 
-class Upload extends StatefulWidget {
+class MultiUpload extends StatefulWidget {
   final User currentUser;
 
-  Upload({this.currentUser});
+  MultiUpload({this.currentUser});
 
   @override
-  _UploadState createState() => _UploadState();
+  _MultiUploadState createState() => _MultiUploadState();
 }
 
-class _UploadState extends State<Upload>
-    with AutomaticKeepAliveClientMixin<Upload> {
+class _MultiUploadState extends State<MultiUpload>
+    with AutomaticKeepAliveClientMixin<MultiUpload> {
   Geolocator geolocator = Geolocator();
   TextEditingController _locationController = new TextEditingController();
   TextEditingController _captionController = new TextEditingController();
@@ -49,6 +51,8 @@ class _UploadState extends State<Upload>
   GeoFirePoint storeLocation;
   String _placeId;
   List<Dropdown> _placesList;
+  List<Asset> images = List<Asset>();
+  String _error;
 
   @override
   void initState() {
@@ -78,11 +82,42 @@ class _UploadState extends State<Upload>
     });
   }
 
-  handleChooseFromGallery() async {
+  // handleChooseFromGallery() async {
+  //   Navigator.pop(context);
+  //   File file = await ImagePicker.pickImage(source: ImageSource.gallery);
+  //   setState(() {
+  //     this.file = file;
+  //   });
+  // }
+
+  Future<void> handleChooseFromGallery() async {
     Navigator.pop(context);
-    File file = await ImagePicker.pickImage(source: ImageSource.gallery);
     setState(() {
-      this.file = file;
+      images = List<Asset>();
+    });
+
+    List<Asset> resultList;
+    String error;
+
+    try {
+      resultList = await MultiImagePicker.pickImages(
+        maxImages: 10,
+        enableCamera: true,
+      );
+    } on Exception catch (e) {
+      error = '$e';
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    print('Result List: $resultList');
+
+    setState(() {
+      images = resultList;
+      if (error == null) _error = 'No Error Dectected';
     });
   }
 
@@ -164,6 +199,34 @@ class _UploadState extends State<Upload>
     return downloadUrl;
   }
 
+  Future<List<String>> uploadImages() async {
+    List<String> uploadUrls = [];
+
+    images.map((Asset image) async {
+      ByteData byteData = await image.getByteData(quality: 50);
+      List<int> imageData = byteData.buffer.asUint8List();
+      String fileName = 'post_${postId}_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg';
+      StorageUploadTask uploadTask =
+        storageRef.child(fileName).putData(imageData);
+      StorageTaskSnapshot storageTaskSnapshot;
+      
+      StorageTaskSnapshot snapshot = await uploadTask.onComplete;
+      if (snapshot.error == null) {
+        storageTaskSnapshot = snapshot;
+        final String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
+        print('download URL: $downloadUrl');
+        uploadUrls.add(downloadUrl);
+
+        print('Upload success');
+      } else {
+        print('Error from image repo ${snapshot.error.toString()}');
+        throw ('This file is not an image');
+      }
+    });
+
+    return uploadUrls;
+  }
+
   createPostInFirestore(
       {String mediaUrl,
       String location,
@@ -211,19 +274,23 @@ class _UploadState extends State<Upload>
     });
 
     if (_locationValid && _placeIdValid) {
-      GeoFirePoint storeLocation = await getStoreLocation();
-      await compressImage();
 
-      String mediaUrl = await uploadImage(file);
+      List<String> mediaUrls = await uploadImages();
+      print('media Urls = $mediaUrls');
+      // GeoFirePoint storeLocation = await getStoreLocation();
+      
+      // await compressImage();
+      // String mediaUrl = await uploadImage(file);
 
-      createPostInFirestore(
-          mediaUrl: mediaUrl,
-          location: _locationController.text,
-          description: _captionController.text,
-          originalPrice: double.parse(_originalPriceController.text),
-          discountedPrice: double.parse(_discountedPriceController.text),
-          storeLocation: storeLocation);
+      // createPostInFirestore(
+      //     mediaUrl: mediaUrl,
+      //     location: _locationController.text,
+      //     description: _captionController.text,
+      //     originalPrice: double.parse(_originalPriceController.text),
+      //     discountedPrice: double.parse(_discountedPriceController.text),
+      //     storeLocation: storeLocation);
     }
+    
     setState(() {
       isUploading = false;
     });

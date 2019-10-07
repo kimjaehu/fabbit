@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:fabbit/models/user.dart';
+import 'package:fabbit/pages/multi_upload.dart';
 import 'package:fabbit/pages/upload.dart';
 import 'package:fabbit/pages/upload_store.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -189,7 +190,7 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           Search(),
           Timeline(currentUser: currentUser),
-          Upload(currentUser: currentUser),
+          MultiUpload(currentUser: currentUser),
           ActivityFeed(),
           Profile(profileId: currentUser?.id),
         ],
