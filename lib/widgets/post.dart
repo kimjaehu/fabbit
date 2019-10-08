@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:animator/animator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,18 +17,18 @@ class Post extends StatefulWidget {
   final String username;
   final String location;
   final String description;
-  final String mediaUrl;
-  final double originalPrice;
-  final double discountedPrice;
+  final List<String> mediaUrls;
+  final String originalPrice;
+  final String discountedPrice;
   final dynamic likes;
-
+  
   Post({
     this.postId,
     this.ownerId,
     this.username,
     this.location,
     this.description,
-    this.mediaUrl,
+    this.mediaUrls,
     this.originalPrice,
     this.discountedPrice,
     this.likes,
@@ -41,7 +41,7 @@ class Post extends StatefulWidget {
       username: doc['username'],
       location: doc['location'],
       description: doc['description'],
-      mediaUrl: doc['mediaUrl'],
+      mediaUrls: List.from(doc['mediaUrls']),
       originalPrice: doc['originalPrice'],
       discountedPrice: doc['discountedPrice'],
       likes: doc['likes'],
@@ -70,7 +70,7 @@ class Post extends StatefulWidget {
         username: this.username,
         location: this.location,
         description: this.description,
-        mediaUrl: this.mediaUrl,
+        mediaUrls: this.mediaUrls,
         originalPrice: this.originalPrice,
         discountedPrice: this.discountedPrice,
         likes: this.likes,
@@ -85,21 +85,21 @@ class _PostState extends State<Post> {
   final String username;
   final String location;
   final String description;
-  final double originalPrice;
-  final double discountedPrice;
-  final String mediaUrl;
+  final String originalPrice;
+  final String discountedPrice;
+  final List<String> mediaUrls;
   bool showHeart = false;
   int likeCount;
   Map likes;
   bool isLiked;
-
+  
   _PostState({
     this.postId,
     this.ownerId,
     this.username,
     this.location,
     this.description,
-    this.mediaUrl,
+    this.mediaUrls,
     this.originalPrice,
     this.discountedPrice,
     this.likes,
@@ -255,7 +255,7 @@ class _PostState extends State<Post> {
         "userId": currentUser.id,
         "userProfileImg": currentUser.photoUrl,
         "postId": postId,
-        "mediaUrl": mediaUrl,
+        "mediaUrls": mediaUrls,
         "originalPrice": originalPrice,
         "discountedPrice": discountedPrice,
         "timestamp": timestamp,
@@ -285,7 +285,28 @@ class _PostState extends State<Post> {
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          cachedNetworkImage(mediaUrl),
+          // cachedNetworkImage(mediaUrls[0]),
+          Stack(
+            children: <Widget>[
+              CarouselSlider(
+                enlargeCenterPage: true,
+                enableInfiniteScroll: false,
+                height: 400.0,
+                items: mediaUrls.map((url) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return Container(
+                        width: MediaQuery.of(context).size.width,
+                        margin: EdgeInsets.symmetric(horizontal: 5.0),
+                        decoration: BoxDecoration(color: Colors.amber),
+                        child: cachedNetworkImage(url),
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
           showHeart
               ? Animator(
                   duration: Duration(milliseconds: 300),
@@ -328,7 +349,7 @@ class _PostState extends State<Post> {
                 context,
                 postId: postId,
                 ownerId: ownerId,
-                mediaUrl: mediaUrl,
+                mediaUrls: mediaUrls,
               ),
               child: Icon(
                 Icons.chat,
@@ -389,12 +410,12 @@ class _PostState extends State<Post> {
 }
 
 showComments(BuildContext context,
-    {String postId, String ownerId, String mediaUrl}) {
+    {String postId, String ownerId, List<String> mediaUrls}) {
   Navigator.push(context, MaterialPageRoute(builder: (context) {
     return Comments(
       postId: postId,
       postOwnerId: ownerId,
-      postMediaUrl: mediaUrl,
+      postMediaUrl: mediaUrls[0],
     );
   }));
 }

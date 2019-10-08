@@ -202,7 +202,7 @@ class _MultiUploadState extends State<MultiUpload>
   Future<List<String>> uploadImages() async {
     List<String> uploadUrls = [];
     print('upload images started ${images.length}');
-    images.forEach((Asset image) async {
+    await Future.wait(images.map((Asset image) async {
       print('image: $image');
       ByteData byteData = await image.getByteData(quality: 50);
       List<int> imageData = byteData.buffer.asUint8List();
@@ -225,7 +225,7 @@ class _MultiUploadState extends State<MultiUpload>
         print('Error from image repo ${snapshot.error.toString()}');
         throw ('This file is not an image');
       }
-    });
+    }));
     print('uploadUrls at the end = ${uploadUrls.length}');
     return uploadUrls;
   }

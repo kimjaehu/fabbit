@@ -1,3 +1,18 @@
+// geohash length
+// 1 <= 5000 km x 5000 km
+// 2 <= 1250 km x 625km
+// 3 <= 156 km x 156 km
+// 4 <= 39.1 km x 19.5 km
+// 5 <= 4.89 km x 4.89 km
+// 6 <= 1.22 km x 0.61 km 
+// 7 <= 153 m x 153 m
+// 8 <= 38.2 m x 19.1 m
+// 9 <= 4.77 m x 4.77 m
+// 10 <= 1.19 m x 0.596 m
+// 11 <= 149 mm x 149 mm
+// 12 <= 37.2 mm x 18.6 mm
+
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';

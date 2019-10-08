@@ -8,8 +8,6 @@ class User {
   final String displayName;
   final String bio;
   final String location;
-  // final double latitude;
-  // final double longitude;
   final dynamic position;
 
 User({
@@ -20,8 +18,6 @@ User({
   this.displayName,
   this.bio,
   this.location,
-  // this.latitude,
-  // this.longitude,
   this.position,
 });
 
@@ -34,8 +30,6 @@ factory User.fromDocument(DocumentSnapshot doc) {
     displayName: doc['displayName'],
     bio: doc['bio'],
     location: doc['location'],
-    // latitude: doc['latitude'],
-    // longitude: doc['longitude'],
     position: doc['position'],
   );
 }
