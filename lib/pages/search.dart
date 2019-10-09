@@ -4,14 +4,13 @@
 // 3 <= 156 km x 156 km
 // 4 <= 39.1 km x 19.5 km
 // 5 <= 4.89 km x 4.89 km
-// 6 <= 1.22 km x 0.61 km 
+// 6 <= 1.22 km x 0.61 km
 // 7 <= 153 m x 153 m
 // 8 <= 38.2 m x 19.1 m
 // 9 <= 4.77 m x 4.77 m
 // 10 <= 1.19 m x 0.596 m
 // 11 <= 149 mm x 149 mm
 // 12 <= 37.2 mm x 18.6 mm
-
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,15 +20,32 @@ import 'package:fabbit/pages/home.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class Search extends StatefulWidget {
   @override
   _SearchState createState() => _SearchState();
 }
 
-class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Search> {
+class _SearchState extends State<Search>
+    with AutomaticKeepAliveClientMixin<Search> {
   TextEditingController searchController = TextEditingController();
   Future<QuerySnapshot> searchResultsFuture;
+  final categories = [
+    "All",
+    "Electronics & Office",
+    "Clothing, Shoes & Accessories",
+    "Home, Furniture & Appliances",
+    "Home improvement & Patio",
+    "Movies, Music & Books",
+    "Baby",
+    "Toys, Games and Video Games",
+    "Food, Household & Pets",
+    "Pharmacy, Health & Beauty",
+    "Sports, Fitness & Outdoors",
+    "Automotive, Tires & Industrial",
+    "Art, Craft, Sewing & Party Supplies",
+  ];
 
   handleSearch(String query) {
     Future<QuerySnapshot> users = usersRef
@@ -63,6 +79,60 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
         ),
         onFieldSubmitted: handleSearch,
       ),
+    );
+  }
+
+  Widget buildCategoriesButtons() {
+    return GridView.count(
+      crossAxisCount: 3,
+      scrollDirection: Axis.vertical,
+      childAspectRatio: 1.0,
+      children: List.generate(categories.length, (index){
+        return   Card(
+          color: Colors.grey[800],
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: InkWell(
+              onTap: () {},
+              child: Center(
+                child: AutoSizeText(
+                  categories[index],
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+      // children: <Widget>[
+        // Card(
+        //   color: Colors.grey[800],
+        //   child: Padding(
+        //     padding: EdgeInsets.all(8.0),
+        //     child: InkWell(
+        //       onTap: () {},
+        //       child: Center(
+        //         child: AutoSizeText(
+        //           "All",
+        //           style: TextStyle(
+        //             fontSize: 30,
+        //             color: Colors.white,
+        //             fontWeight: FontWeight.bold,
+        //           ),
+        //           maxLines: 2,
+        //           textAlign: TextAlign.center,
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
+      // ],
     );
   }
 
@@ -123,8 +193,9 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor.withOpacity(0.7),
       appBar: buildSearchField(),
-      body:
-          searchResultsFuture == null ? buildNoContent() : buildSearchResults(),
+      body: searchResultsFuture == null
+          ? buildCategoriesButtons()
+          : buildSearchResults(),
     );
   }
 }
@@ -160,8 +231,7 @@ class UserResult extends StatelessWidget {
               ),
             ),
           ),
-          Divider(
-            height: 2.0,color:Colors.white54)
+          Divider(height: 2.0, color: Colors.white54)
         ],
       ),
     );

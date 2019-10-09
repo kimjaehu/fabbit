@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -394,6 +395,24 @@ class _MultiUploadState extends State<MultiUpload>
       body: ListView(
         children: <Widget>[
           isUploading ? linearProgress() : Text(""),
+          CarouselSlider(
+                enlargeCenterPage: true,
+                enableInfiniteScroll: false,
+                height: 400.0,
+                items: images.map((image) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return Container(
+                        width: MediaQuery.of(context).size.width,
+                        margin: EdgeInsets.symmetric(horizontal: 5.0),
+                        decoration: BoxDecoration(color: Colors.amber),
+                        child: new Image.asset(async image.filePath),
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+
           // Container(
           //   height: 220.0,
           //   width: MediaQuery.of(context).size.width * 0.8,
