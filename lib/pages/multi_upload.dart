@@ -54,6 +54,23 @@ class _MultiUploadState extends State<MultiUpload>
   List<Dropdown> _placesList;
   List<Asset> images = List<Asset>();
   String _error;
+  String _currentCategorySelected;
+
+  final _dropdownCategories = [
+    {"text":"Electronics & Office","color":Colors.grey[800]},
+    {"text":"Fashion","color":Colors.orange},
+    {"text":"Home & Appliances","color":Colors.grey[800]},
+    {"text":"Movies, Music & Books","color":Colors.grey[800]},
+    {"text":"Baby","color":Colors.grey[800]},
+    {"text":"Toys and Video Games","color":Colors.grey[800]},
+    {"text":"Food & Household","color":Colors.grey[800]},
+    {"text":"Pets","color":Colors.grey[800]},
+    {"text":"Health & Beauty","color":Colors.red},
+    {"text":"Sports & Outdoors","color":Colors.grey[800]},
+    {"text":"Automotive & Industrial","color":Colors.grey[800]},
+    {"text":"Art & Craft","color":Colors.grey[800]},
+    {"text":"Misc.","color":Colors.grey[800]},
+  ];
 
   @override
   void initState() {
@@ -102,7 +119,7 @@ class _MultiUploadState extends State<MultiUpload>
 
     try {
       resultList = await MultiImagePicker.pickImages(
-        maxImages: 10,
+        maxImages: 4,
         enableCamera: true,
       );
     } on Exception catch (e) {
@@ -117,8 +134,6 @@ class _MultiUploadState extends State<MultiUpload>
       resultList == null ? images = [] : images = resultList;
       if (error == null) _error = 'No Error Dectected';
     });
-
-    
   }
 
   selectImage(parentContext) {
@@ -128,12 +143,12 @@ class _MultiUploadState extends State<MultiUpload>
           return SimpleDialog(
             title: Text("Create Post"),
             children: <Widget>[
+              // SimpleDialogOption(
+              //   child: Text("Take a photo"),
+              //   onPressed: handleTakePhoto,
+              // ),
               SimpleDialogOption(
-                child: Text("Take a photo"),
-                onPressed: handleTakePhoto,
-              ),
-              SimpleDialogOption(
-                child: Text("Image from Gallery"),
+                child: Text("From Camera & Gallery"),
                 onPressed: handleChooseFromGallery,
               ),
               SimpleDialogOption(
@@ -207,9 +222,10 @@ class _MultiUploadState extends State<MultiUpload>
       print('image: $image');
       ByteData byteData = await image.getByteData(quality: 50);
       List<int> imageData = byteData.buffer.asUint8List();
-      String fileName = 'post_${postId}_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg';
+      String fileName =
+          'post_${postId}_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg';
       StorageUploadTask uploadTask =
-        storageRef.child(fileName).putData(imageData);
+          storageRef.child(fileName).putData(imageData);
       // StorageTaskSnapshot storageSnap = await uploadTask.onComplete;
       // String downloadUrl = await storageSnap.ref.getDownloadURL();
       // print('downloadUrl $downloadUrl');
@@ -218,7 +234,8 @@ class _MultiUploadState extends State<MultiUpload>
       StorageTaskSnapshot snapshot = await uploadTask.onComplete;
       if (snapshot.error == null) {
         storageTaskSnapshot = snapshot;
-        final String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
+        final String downloadUrl =
+            await storageTaskSnapshot.ref.getDownloadURL();
         uploadUrls.add(downloadUrl);
         print('uploadUrls = ${uploadUrls.length}');
         print('Upload success');
@@ -237,8 +254,9 @@ class _MultiUploadState extends State<MultiUpload>
       String description,
       String originalPrice,
       String discountedPrice,
+      String category,
       GeoFirePoint storeLocation}) {
-        print('post start $mediaUrls');
+    print('post start $mediaUrls');
     postsRef
         .document(widget.currentUser.id)
         .collection("userPosts")
@@ -251,9 +269,11 @@ class _MultiUploadState extends State<MultiUpload>
       "description": description,
       "location": location,
       "position": storeLocation.data,
+      "category": category,
       "originalPrice": originalPrice,
       "discountedPrice": discountedPrice,
       "timestamp": timestamp,
+      "keywords": '${location.toLowerCase().split(' ')} ${description.toLowerCase().split(' ')} ${category.toLowerCase().split(' ')}',
       "likes": {},
     });
     print('post finished $mediaUrls');
@@ -285,7 +305,7 @@ class _MultiUploadState extends State<MultiUpload>
       List<String> mediaUrls = await uploadImages();
       print(mediaUrls.length);
       GeoFirePoint storeLocation = await getStoreLocation();
-      
+
       // await compressImage();
       // String mediaUrl = await uploadImage(file);
 
@@ -293,11 +313,12 @@ class _MultiUploadState extends State<MultiUpload>
           mediaUrls: mediaUrls,
           location: _locationController.text,
           description: _captionController.text,
+          category: _currentCategorySelected,
           originalPrice: _originalPriceController.text,
           discountedPrice: _discountedPriceController.text,
           storeLocation: storeLocation);
     }
-    
+
     setState(() {
       isUploading = false;
     });
@@ -363,6 +384,20 @@ class _MultiUploadState extends State<MultiUpload>
     );
   }
 
+  Widget buildGridView() {
+    return GridView.count(
+      crossAxisCount: 4,
+      children: List.generate(images.length, (index) {
+        Asset asset = images[index];
+        return AssetThumb(
+          asset: asset,
+          width: 250,
+          height: 250,
+        );
+      }),
+    );
+  }
+
   Scaffold buildUploadForm() {
     return Scaffold(
       appBar: AppBar(
@@ -395,23 +430,13 @@ class _MultiUploadState extends State<MultiUpload>
       body: ListView(
         children: <Widget>[
           isUploading ? linearProgress() : Text(""),
-          CarouselSlider(
-                enlargeCenterPage: true,
-                enableInfiniteScroll: false,
-                height: 400.0,
-                items: images.map((image) {
-                  return Builder(
-                    builder: (BuildContext context) {
-                      return Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: EdgeInsets.symmetric(horizontal: 5.0),
-                        decoration: BoxDecoration(color: Colors.amber),
-                        child: new Image.asset(async image.filePath),
-                      );
-                    },
-                  );
-                }).toList(),
-              ),
+          Container(
+            height: 125.0,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: (
+            buildGridView()
+            
+            )),
 
           // Container(
           //   height: 220.0,
@@ -433,6 +458,51 @@ class _MultiUploadState extends State<MultiUpload>
           Padding(
             padding: EdgeInsets.only(top: 10.0),
           ),
+          ListTile(
+            leading: Icon(Icons.category),
+            title: DropdownButton<String>(
+              items: _dropdownCategories.map((cat) {
+                return DropdownMenuItem<String>(
+                  value: cat["text"],
+                  child: Text(cat["text"])
+                );
+              }).toList(),
+              onChanged: (String newValue) {
+                setState(() {
+                  this._currentCategorySelected = newValue;
+                });
+              },
+              value: _currentCategorySelected,
+              hint: Text('Choose the category'),
+            ),
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.attach_money, color: Colors.orange, size: 35.0),
+            title: Container(
+              width: 250.0,
+              child: TextField(
+                controller: _originalPriceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                    hintText: "Original Price", border: InputBorder.none),
+              ),
+            ),
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.attach_money, color: Colors.orange, size: 35.0),
+            title: Container(
+              width: 250.0,
+              child: TextField(
+                keyboardType: TextInputType.number,
+                controller: _discountedPriceController,
+                decoration: InputDecoration(
+                    hintText: "Discounted Price", border: InputBorder.none),
+              ),
+            ),
+          ),
+          Divider(),
           ListTile(
             leading: Icon(Icons.pin_drop, color: Colors.orange, size: 35.0),
             trailing: _placeIdValid
@@ -480,35 +550,7 @@ class _MultiUploadState extends State<MultiUpload>
               ),
             ),
           ),
-          
           Divider(),
-          ListTile(
-            leading: Icon(Icons.attach_money, color: Colors.orange, size: 35.0),
-            title: Container(
-              width: 250.0,
-              child: TextField(
-                controller: _originalPriceController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                    hintText: "Original Price", border: InputBorder.none),
-              ),
-            ),
-          ),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.attach_money, color: Colors.orange, size: 35.0),
-            title: Container(
-              width: 250.0,
-              child: TextField(
-                keyboardType: TextInputType.number,
-                controller: _discountedPriceController,
-                decoration: InputDecoration(
-                    hintText: "Discounted Price", border: InputBorder.none),
-              ),
-            ),
-          ),
-          Divider(),
-          
           ListTile(
             leading: CircleAvatar(
               backgroundImage:

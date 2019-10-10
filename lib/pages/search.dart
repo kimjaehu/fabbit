@@ -17,6 +17,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/pages/activity_feed.dart';
 import 'package:fabbit/pages/home.dart';
+import 'package:fabbit/widgets/post.dart';
+import 'package:fabbit/widgets/post_tile.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -31,20 +33,25 @@ class _SearchState extends State<Search>
     with AutomaticKeepAliveClientMixin<Search> {
   TextEditingController searchController = TextEditingController();
   Future<QuerySnapshot> searchResultsFuture;
+  List<Post> posts = [];
+
+  bool isLoading = false;
+
   final categories = [
-    "All",
-    "Electronics & Office",
-    "Clothing, Shoes & Accessories",
-    "Home, Furniture & Appliances",
-    "Home improvement & Patio",
-    "Movies, Music & Books",
-    "Baby",
-    "Toys, Games and Video Games",
-    "Food, Household & Pets",
-    "Pharmacy, Health & Beauty",
-    "Sports, Fitness & Outdoors",
-    "Automotive, Tires & Industrial",
-    "Art, Craft, Sewing & Party Supplies",
+    {"text":"All","color": Colors.cyanAccent[700]},
+    {"text":"Electronics & Office","color":Colors.grey[800]},
+    {"text":"Fashion","color":Colors.orange},
+    {"text":"Home & Appliances","color":Colors.grey[800]},
+    {"text":"Movies, Music & Books","color":Colors.grey[800]},
+    {"text":"Baby","color":Colors.grey[800]},
+    {"text":"Toys and Video Games","color":Colors.grey[800]},
+    {"text":"Food & Household","color":Colors.grey[800]},
+    {"text":"Pets","color":Colors.grey[800]},
+    {"text":"Health & Beauty","color":Colors.red},
+    {"text":"Sports & Outdoors","color":Colors.grey[800]},
+    {"text":"Automotive & Industrial","color":Colors.grey[800]},
+    {"text":"Art & Craft","color":Colors.grey[800]},
+    {"text":"Misc.","color":Colors.grey[800]},
   ];
 
   handleSearch(String query) {
@@ -84,21 +91,21 @@ class _SearchState extends State<Search>
 
   Widget buildCategoriesButtons() {
     return GridView.count(
-      crossAxisCount: 3,
+      crossAxisCount: 4,
       scrollDirection: Axis.vertical,
       childAspectRatio: 1.0,
-      children: List.generate(categories.length, (index){
-        return   Card(
-          color: Colors.grey[800],
+      children: List.generate(categories.length, (index) {
+        return Card(
+          color: categories[index]["color"],
           child: Padding(
             padding: EdgeInsets.all(8.0),
             child: InkWell(
-              onTap: () {},
+              onTap: getCategoryPosts,
               child: Center(
                 child: AutoSizeText(
-                  categories[index],
+                  categories[index]["text"],
                   style: TextStyle(
-                    fontSize: 30,
+                    fontSize: 20,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -111,27 +118,27 @@ class _SearchState extends State<Search>
         );
       }),
       // children: <Widget>[
-        // Card(
-        //   color: Colors.grey[800],
-        //   child: Padding(
-        //     padding: EdgeInsets.all(8.0),
-        //     child: InkWell(
-        //       onTap: () {},
-        //       child: Center(
-        //         child: AutoSizeText(
-        //           "All",
-        //           style: TextStyle(
-        //             fontSize: 30,
-        //             color: Colors.white,
-        //             fontWeight: FontWeight.bold,
-        //           ),
-        //           maxLines: 2,
-        //           textAlign: TextAlign.center,
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // ),
+      // Card(
+      //   color: Colors.grey[800],
+      //   child: Padding(
+      //     padding: EdgeInsets.all(8.0),
+      //     child: InkWell(
+      //       onTap: () {},
+      //       child: Center(
+      //         child: AutoSizeText(
+      //           "All",
+      //           style: TextStyle(
+      //             fontSize: 30,
+      //             color: Colors.white,
+      //             fontWeight: FontWeight.bold,
+      //           ),
+      //           maxLines: 2,
+      //           textAlign: TextAlign.center,
+      //         ),
+      //       ),
+      //     ),
+      //   ),
+      // ),
       // ],
     );
   }
@@ -163,25 +170,108 @@ class _SearchState extends State<Search>
     );
   }
 
-  buildSearchResults() {
-    return FutureBuilder(
-      future: searchResultsFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return circularProgress();
-        }
-        List<UserResult> searchResults = [];
-        snapshot.data.documents.forEach((doc) {
-          User user = User.fromDocument(doc);
-          UserResult searchResult = UserResult(user);
-          searchResults.add(searchResult);
-          // print(user);
-        });
-        return ListView(
-          children: searchResults,
-        );
-      },
+  getCategoryPosts() async {
+    setState(() {
+      isLoading = true;
+    });
+    QuerySnapshot snapshot = await postsGroupRef
+        // .where("category", "==", category)
+        // .orderBy('timestamp', descending: true)
+        .getDocuments();
+    setState(() {
+      isLoading = false;
+      posts = snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+    });
+  }
+
+  buildCategoryPosts() {
+    if (isLoading) {
+      return circularProgress();
+    }
+    List<GridTile> gridTiles = [];
+    posts.forEach((post) {
+      gridTiles.add(GridTile(child: PostTile(post)));
+    });
+
+    return ListView(
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+          child: Card(
+            color: Colors.grey[800],
+            child: Padding(
+              padding: EdgeInsets.only(left: 4.0, right: 4.0),
+              child: InkWell(
+                onTap: () {setState(() {
+                  posts = [];
+                });},
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Center(
+                      child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                          padding: EdgeInsets.only(left:6.0, right: 6.0),
+                          child: Icon(
+                            Icons.arrow_back,
+                            size: 28,
+                            color: Colors.white,
+                          )),
+                      Padding(
+                        padding: EdgeInsets.only(left:6.0, right: 6.0),
+                        child: AutoSizeText(
+                          "Go Back to Choose Category",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  )),
+                ),
+              ),
+            ),
+          ),
+        ),
+        GridView.count(
+            crossAxisCount: 3,
+            childAspectRatio: 1.0,
+            mainAxisSpacing: 1.5,
+            crossAxisSpacing: 1.5,
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            children: gridTiles)
+      ],
     );
+  }
+
+  buildSearchResults() {
+    if (isLoading) {
+      return circularProgress();
+    }
+    // return FutureBuilder(
+    //   future: searchResultsFuture,
+    //   builder: (context, snapshot) {
+    //     if (!snapshot.hasData) {
+    //       return circularProgress();
+    //     }
+    //     List<UserResult> searchResults = [];
+    //     snapshot.data.documents.forEach((doc) {
+    //       User user = User.fromDocument(doc);
+    //       UserResult searchResult = UserResult(user);
+    //       searchResults.add(searchResult);
+    //       // print(user);
+    //     });
+    //     return ListView(
+    //       children: searchResults,
+    //     );
+    //   },
+    // );
   }
 
   bool get wantKeepAlive => true;
@@ -191,11 +281,10 @@ class _SearchState extends State<Search>
     super.build(context);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.7),
+      // backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Colors.white,
       appBar: buildSearchField(),
-      body: searchResultsFuture == null
-          ? buildCategoriesButtons()
-          : buildSearchResults(),
+      body: posts.isEmpty ? buildCategoriesButtons() : buildCategoryPosts(),
     );
   }
 }
@@ -208,7 +297,7 @@ class UserResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).primaryColor.withOpacity(.6),
+      color: Theme.of(context).primaryColor,
       child: Column(
         children: <Widget>[
           GestureDetector(

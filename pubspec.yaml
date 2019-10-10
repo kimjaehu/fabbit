@@ -32,7 +32,7 @@ dependencies:
   dio: ^3.0.2
   auto_size_text: ^2.1.0
   flutter_typeahead: ^1.6.1
-  multi_image_picker: ^4.5.6
+  multi_image_picker: ^4.5.8
   carousel_slider: ^1.3.1
   #iOS #
   #On iOS you'll need to add the NSLocationWhenInUseUsageDescription to your Info.plist file (located under ios/Runner/Base.lproj) in order to access the device's location. Simply open your Info.plist file and add the following:

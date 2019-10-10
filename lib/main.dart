@@ -20,8 +20,8 @@ class MyApp extends StatelessWidget {
       title: 'Fabbit',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: Colors.cyan[400],
-        accentColor: Colors.red[300],
+        primaryColor: Colors.blueGrey[900],
+        accentColor: Colors.cyanAccent[700],
       ),
       home: Home(),
     );
