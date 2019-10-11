@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -17,7 +16,6 @@ import 'package:fabbit/pages/home.dart';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:fabbit/models/dropdown.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'dart:async';
 import 'package:multi_image_picker/multi_image_picker.dart';
@@ -57,19 +55,19 @@ class _MultiUploadState extends State<MultiUpload>
   String _currentCategorySelected;
 
   final _dropdownCategories = [
-    {"text":"Electronics & Office","color":Colors.grey[800]},
-    {"text":"Fashion","color":Colors.orange},
-    {"text":"Home & Appliances","color":Colors.grey[800]},
-    {"text":"Movies, Music & Books","color":Colors.grey[800]},
-    {"text":"Baby","color":Colors.grey[800]},
-    {"text":"Toys and Video Games","color":Colors.grey[800]},
-    {"text":"Food & Household","color":Colors.grey[800]},
-    {"text":"Pets","color":Colors.grey[800]},
-    {"text":"Health & Beauty","color":Colors.red},
-    {"text":"Sports & Outdoors","color":Colors.grey[800]},
-    {"text":"Automotive & Industrial","color":Colors.grey[800]},
-    {"text":"Art & Craft","color":Colors.grey[800]},
-    {"text":"Misc.","color":Colors.grey[800]},
+    {"text": "Electronics & Office", "color": Colors.grey[800]},
+    {"text": "Fashion", "color": Colors.orange},
+    {"text": "Home & Appliances", "color": Colors.grey[800]},
+    {"text": "Movies, Music & Books", "color": Colors.grey[800]},
+    {"text": "Baby", "color": Colors.lightGreen},
+    {"text": "Toys and Video Games", "color": Colors.grey[800]},
+    {"text": "Food & Household", "color": Colors.grey[800]},
+    {"text": "Pets", "color": Colors.grey[800]},
+    {"text": "Health & Beauty", "color": Colors.purpleAccent},
+    {"text": "Sports & Outdoors", "color": Colors.grey[800]},
+    {"text": "Automotive & Industrial", "color": Colors.grey[800]},
+    {"text": "Art & Craft", "color": Colors.grey[800]},
+    {"text": "Misc.", "color": Colors.grey[800]},
   ];
 
   @override
@@ -255,6 +253,7 @@ class _MultiUploadState extends State<MultiUpload>
       String originalPrice,
       String discountedPrice,
       String category,
+      List<String> keywords,
       GeoFirePoint storeLocation}) {
     print('post start $mediaUrls');
     postsRef
@@ -273,7 +272,7 @@ class _MultiUploadState extends State<MultiUpload>
       "originalPrice": originalPrice,
       "discountedPrice": discountedPrice,
       "timestamp": timestamp,
-      "keywords": '${location.toLowerCase().split(' ')} ${description.toLowerCase().split(' ')} ${category.toLowerCase().split(' ')}',
+      "keywords": keywords,
       "likes": {},
     });
     print('post finished $mediaUrls');
@@ -299,15 +298,17 @@ class _MultiUploadState extends State<MultiUpload>
           ? _locationValid = false
           : _locationValid = true;
     });
-    print('handle submit');
-    if (_locationValid && _placeIdValid) {
-      print('uploading started');
-      List<String> mediaUrls = await uploadImages();
-      print(mediaUrls.length);
-      GeoFirePoint storeLocation = await getStoreLocation();
 
+    if (_locationValid && _placeIdValid) {
+      List<String> mediaUrls = await uploadImages();
+      GeoFirePoint storeLocation = await getStoreLocation();
       // await compressImage();
       // String mediaUrl = await uploadImage(file);
+      String rawString =
+          '${_locationController.text.toLowerCase().split(' ')} ${_captionController.text.toLowerCase().split(' ')} ${_currentCategorySelected.toLowerCase().split(' ')}';
+      String formattedString = rawString.replaceAll(new RegExp(r"[^\s\w]"), '');
+
+      List<String> searchKeywords = formattedString.split(' ');
 
       createPostInFirestore(
           mediaUrls: mediaUrls,
@@ -316,7 +317,8 @@ class _MultiUploadState extends State<MultiUpload>
           category: _currentCategorySelected,
           originalPrice: _originalPriceController.text,
           discountedPrice: _discountedPriceController.text,
-          storeLocation: storeLocation);
+          storeLocation: storeLocation,
+          keywords: searchKeywords);
     }
 
     setState(() {
@@ -431,12 +433,9 @@ class _MultiUploadState extends State<MultiUpload>
         children: <Widget>[
           isUploading ? linearProgress() : Text(""),
           Container(
-            height: 125.0,
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: (
-            buildGridView()
-            
-            )),
+              height: 125.0,
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: (buildGridView())),
 
           // Container(
           //   height: 220.0,
@@ -463,9 +462,7 @@ class _MultiUploadState extends State<MultiUpload>
             title: DropdownButton<String>(
               items: _dropdownCategories.map((cat) {
                 return DropdownMenuItem<String>(
-                  value: cat["text"],
-                  child: Text(cat["text"])
-                );
+                    value: cat["text"], child: Text(cat["text"]));
               }).toList(),
               onChanged: (String newValue) {
                 setState(() {

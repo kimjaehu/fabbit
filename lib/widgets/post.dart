@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:animator/animator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -10,6 +11,7 @@ import 'package:fabbit/pages/home.dart';
 import 'package:fabbit/widgets/custom_image.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
+// import 'package:geolocator/geolocator.dart';
 
 class Post extends StatefulWidget {
   final String postId;
@@ -20,8 +22,11 @@ class Post extends StatefulWidget {
   final List<String> mediaUrls;
   final String originalPrice;
   final String discountedPrice;
+  final String category;
+  final List<String> keywords;
   final dynamic likes;
-  
+  // final Position position;
+
   Post({
     this.postId,
     this.ownerId,
@@ -31,6 +36,9 @@ class Post extends StatefulWidget {
     this.mediaUrls,
     this.originalPrice,
     this.discountedPrice,
+    this.category,
+    this.keywords,
+    // this.position,
     this.likes,
   });
 
@@ -44,6 +52,9 @@ class Post extends StatefulWidget {
       mediaUrls: List.from(doc['mediaUrls']),
       originalPrice: doc['originalPrice'],
       discountedPrice: doc['discountedPrice'],
+      category: doc['category'],
+      keywords: List.from(doc['keywords']),
+      // position: doc['position'],
       likes: doc['likes'],
     );
   }
@@ -73,6 +84,9 @@ class Post extends StatefulWidget {
         mediaUrls: this.mediaUrls,
         originalPrice: this.originalPrice,
         discountedPrice: this.discountedPrice,
+        category: this.category,
+        keywords: this.keywords,
+        // position: this.position,
         likes: this.likes,
         likeCount: getLikeCount(this.likes),
       );
@@ -87,12 +101,18 @@ class _PostState extends State<Post> {
   final String description;
   final String originalPrice;
   final String discountedPrice;
+  final String category;
+  final List<String> keywords;
   final List<String> mediaUrls;
+  // final Position position;
   bool showHeart = false;
   int likeCount;
   Map likes;
   bool isLiked;
-  
+  double _formattedOriginalPrices;
+  double _formattedDiscountedPrices;
+  double _discountPercentage;
+
   _PostState({
     this.postId,
     this.ownerId,
@@ -103,8 +123,28 @@ class _PostState extends State<Post> {
     this.originalPrice,
     this.discountedPrice,
     this.likes,
+    this.category,
+    this.keywords,
+    // this.position,
     this.likeCount,
   });
+
+  @override
+  void initState() { 
+    super.initState();
+    setState(() {
+      if (originalPrice.isNotEmpty | discountedPrice.isNotEmpty) {
+        _formattedOriginalPrices = double.parse(originalPrice);
+        _formattedDiscountedPrices = double.parse(discountedPrice);
+        _discountPercentage =
+            (1 - (_formattedDiscountedPrices / _formattedOriginalPrices)) * 100;
+      } else {
+        _formattedOriginalPrices = null;
+        _formattedDiscountedPrices = null;
+        _discountPercentage = null;
+      }
+    });
+  }
 
   buildPostHeader() {
     return FutureBuilder(
@@ -258,6 +298,9 @@ class _PostState extends State<Post> {
         "mediaUrls": mediaUrls,
         "originalPrice": originalPrice,
         "discountedPrice": discountedPrice,
+        "category": category,
+        "keywords": keywords,
+        // "position": position,
         "timestamp": timestamp,
       });
     }
@@ -305,6 +348,22 @@ class _PostState extends State<Post> {
                   );
                 }).toList(),
               ),
+              _discountPercentage == null || _discountPercentage < 40
+                  ? Text('')
+                  : Positioned(
+                      top: 10.0,
+                      left: 35.0,
+                      child: Container(
+                        color: Colors.redAccent,
+                        padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
+                        child: Text(
+                                'FAB DEAL!',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              )
+                      ),
+                    ),
             ],
           ),
           showHeart
@@ -329,6 +388,8 @@ class _PostState extends State<Post> {
   }
 
   buildPostFooter() {
+    
+
     return Column(
       children: <Widget>[
         Row(
@@ -357,6 +418,30 @@ class _PostState extends State<Post> {
                 color: Colors.blue[900],
               ),
             ),
+            Padding(padding: EdgeInsets.only(right: 20.0)),
+            _discountPercentage == null
+                ? Text('')
+                : Row(
+                    children: <Widget>[
+                      Text('Price:',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.bold)),
+                      Padding(padding: EdgeInsets.only(right: 5.0)),
+                      Text(
+                        '\$${_formattedDiscountedPrices.toStringAsFixed(2)}',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      Padding(padding: EdgeInsets.only(right: 5.0)),
+                      Text(
+                        '\$${_formattedOriginalPrices.toStringAsFixed(2)}',
+                        style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: Colors.red),
+                      ),
+                      Padding(padding: EdgeInsets.only(right: 10.0)),
+                    ],
+                  ),
           ],
         ),
         Row(

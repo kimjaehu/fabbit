@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:fabbit/widgets/header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
 class CreateAccountLocation extends StatefulWidget {
@@ -100,6 +101,10 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
         ),
         TextField(
           controller: usernameController,
+           inputFormatters: [
+            WhitelistingTextInputFormatter(new RegExp('^[A-Za-z0-9 _]*[A-Za-z0-9][A-Za-z0-9 _]*')),
+          ],
+          maxLength: 20,
           decoration: InputDecoration(
             hintText: "Create a username",
             errorText: _usernameValid ? null : "Display Name is too short.",

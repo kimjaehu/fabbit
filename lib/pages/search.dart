@@ -17,12 +17,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/pages/activity_feed.dart';
 import 'package:fabbit/pages/home.dart';
+import 'package:fabbit/widgets/header.dart';
 import 'package:fabbit/widgets/post.dart';
 import 'package:fabbit/widgets/post_tile.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Search extends StatefulWidget {
   @override
@@ -35,45 +39,90 @@ class _SearchState extends State<Search>
   Future<QuerySnapshot> searchResultsFuture;
   List<Post> posts = [];
 
+  Position _userLocation;
   bool isLoading = false;
 
   final categories = [
-    {"text":"All","color": Colors.cyanAccent[700]},
-    {"text":"Electronics & Office","color":Colors.grey[800]},
-    {"text":"Fashion","color":Colors.orange},
-    {"text":"Home & Appliances","color":Colors.grey[800]},
-    {"text":"Movies, Music & Books","color":Colors.grey[800]},
-    {"text":"Baby","color":Colors.grey[800]},
-    {"text":"Toys and Video Games","color":Colors.grey[800]},
-    {"text":"Food & Household","color":Colors.grey[800]},
-    {"text":"Pets","color":Colors.grey[800]},
-    {"text":"Health & Beauty","color":Colors.red},
-    {"text":"Sports & Outdoors","color":Colors.grey[800]},
-    {"text":"Automotive & Industrial","color":Colors.grey[800]},
-    {"text":"Art & Craft","color":Colors.grey[800]},
-    {"text":"Misc.","color":Colors.grey[800]},
+    {"text": "All", "color": Colors.cyanAccent[700]},
+    {"text": "Electronics & Office", "color": Colors.grey[800]},
+    {"text": "Fashion", "color": Colors.orange},
+    {"text": "Home & Appliances", "color": Colors.grey[800]},
+    {"text": "Movies, Music & Books", "color": Colors.grey[800]},
+    {"text": "Baby", "color": Colors.lightGreen},
+    {"text": "Toys and Video Games", "color": Colors.grey[800]},
+    {"text": "Food & Household", "color": Colors.grey[800]},
+    {"text": "Pets", "color": Colors.grey[800]},
+    {"text": "Health & Beauty", "color": Colors.purpleAccent},
+    {"text": "Sports & Outdoors", "color": Colors.grey[800]},
+    {"text": "Automotive & Industrial", "color": Colors.grey[800]},
+    {"text": "Art & Craft", "color": Colors.grey[800]},
+    {"text": "Misc.", "color": Colors.grey[800]},
   ];
 
-  handleSearch(String query) {
-    Future<QuerySnapshot> users = usersRef
-        .where("displayName", isGreaterThanOrEqualTo: query)
-        .getDocuments();
-    setState(() {
-      searchResultsFuture = users;
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation().then((position) {
+      _userLocation = position;
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  // handleSearch(String query) {
+  //   Future<QuerySnapshot> users = usersRef
+  //       .where("displayName", isGreaterThanOrEqualTo: query)
+  //       .getDocuments();
+  //   setState(() {
+  //     searchResultsFuture = users;
+  //   });
+  // }
+
+  handleSearch(String query) {
+  setState(() {
+      isLoading = true;
+    });
+    GeoFirePoint center = geo.point(latitude: _userLocation.latitude, longitude: _userLocation.longitude);
+    double radius = 35;
+    String field = 'position';
+
+      var collectionReference = postsGroupRef.where("keywords", arrayContains: query);
+      Stream<List<DocumentSnapshot>> stream = geo.collection(collectionRef: collectionReference)
+                                        .within(center: center, radius: radius, field: field);
+      stream.listen((List<DocumentSnapshot> documentList) {
+        setState(() {
+          isLoading = false;
+          posts = documentList.map((doc) => Post.fromDocument(doc)).toList();
+        });
+      });
+      
+      
+      setState(() {
+        isLoading = false;
+        // posts = postsList;
+        // posts =
+        //     snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+      });
   }
 
   clearSearch() {
     searchController.clear();
   }
 
+
   AppBar buildSearchField() {
     return AppBar(
       backgroundColor: Colors.white,
       title: TextFormField(
         controller: searchController,
+        inputFormatters: [
+          BlacklistingTextInputFormatter(new RegExp('[\\-|\\ ]'))
+        ],
         decoration: InputDecoration(
-          hintText: "Search for fab finds...",
+          hintText: "fab finds one keyword at a time...",
           filled: true,
           prefixIcon: Icon(
             Icons.shop,
@@ -90,56 +139,59 @@ class _SearchState extends State<Search>
   }
 
   Widget buildCategoriesButtons() {
-    return GridView.count(
-      crossAxisCount: 4,
-      scrollDirection: Axis.vertical,
-      childAspectRatio: 1.0,
-      children: List.generate(categories.length, (index) {
-        return Card(
-          color: categories[index]["color"],
-          child: Padding(
-            padding: EdgeInsets.all(8.0),
-            child: InkWell(
-              onTap: getCategoryPosts,
-              child: Center(
-                child: AutoSizeText(
-                  categories[index]["text"],
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+    return Padding(
+      padding: EdgeInsets.only(top: 10.0),
+      child: GridView.count(
+        crossAxisCount: 4,
+        scrollDirection: Axis.vertical,
+        childAspectRatio: 1.0,
+        children: List.generate(categories.length, (index) {
+          return Card(
+            color: categories[index]["color"],
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: InkWell(
+                onTap: () => getCategoryPosts(categories[index]["text"]),
+                child: Center(
+                  child: AutoSizeText(
+                    categories[index]["text"],
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
                   ),
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
                 ),
               ),
             ),
-          ),
-        );
-      }),
-      // children: <Widget>[
-      // Card(
-      //   color: Colors.grey[800],
-      //   child: Padding(
-      //     padding: EdgeInsets.all(8.0),
-      //     child: InkWell(
-      //       onTap: () {},
-      //       child: Center(
-      //         child: AutoSizeText(
-      //           "All",
-      //           style: TextStyle(
-      //             fontSize: 30,
-      //             color: Colors.white,
-      //             fontWeight: FontWeight.bold,
-      //           ),
-      //           maxLines: 2,
-      //           textAlign: TextAlign.center,
-      //         ),
-      //       ),
-      //     ),
-      //   ),
-      // ),
-      // ],
+          );
+        }),
+        // children: <Widget>[
+        // Card(
+        //   color: Colors.grey[800],
+        //   child: Padding(
+        //     padding: EdgeInsets.all(8.0),
+        //     child: InkWell(
+        //       onTap: () {},
+        //       child: Center(
+        //         child: AutoSizeText(
+        //           "All",
+        //           style: TextStyle(
+        //             fontSize: 30,
+        //             color: Colors.white,
+        //             fontWeight: FontWeight.bold,
+        //           ),
+        //           maxLines: 2,
+        //           textAlign: TextAlign.center,
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
+        // ],
+      ),
     );
   }
 
@@ -170,18 +222,71 @@ class _SearchState extends State<Search>
     );
   }
 
-  getCategoryPosts() async {
+  Future<Position> _getUserLocation() async {
+    var position = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    return position;
+  }
+
+  getCategoryPosts(category) async {
     setState(() {
       isLoading = true;
     });
-    QuerySnapshot snapshot = await postsGroupRef
-        // .where("category", "==", category)
-        // .orderBy('timestamp', descending: true)
-        .getDocuments();
-    setState(() {
-      isLoading = false;
-      posts = snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
-    });
+    GeoFirePoint center = geo.point(latitude: _userLocation.latitude, longitude: _userLocation.longitude);
+    double radius = 35;
+    String field = 'position';
+    if (category == "All") {
+      // QuerySnapshot snapshot = await postsGroupRef
+      //     .orderBy('timestamp', descending: true)
+      //     .getDocuments();
+
+      var collectionReference = postsGroupRef;
+      Stream<List<DocumentSnapshot>> stream = geo.collection(collectionRef: collectionReference)
+                                        .within(center: center, radius: radius, field: field);
+      stream.listen((List<DocumentSnapshot> documentList) {
+        setState(() {
+          isLoading = false;
+          posts = documentList.map((doc) => Post.fromDocument(doc)).toList();
+        });
+      });
+      
+      
+      setState(() {
+        isLoading = false;
+        // posts = postsList;
+        // posts =
+        //     snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+      });
+    } else {
+
+      var collectionReference = postsGroupRef.where("category", isEqualTo: category);
+      Stream<List<DocumentSnapshot>> stream = geo.collection(collectionRef: collectionReference)
+                                        .within(center: center, radius: radius, field: field);
+      stream.listen((List<DocumentSnapshot> documentList) {
+        setState(() {
+          isLoading = false;
+          posts = documentList.map((doc) => Post.fromDocument(doc)).toList();
+        });
+      });
+      
+      
+      setState(() {
+        isLoading = false;
+        // posts = postsList;
+        // posts =
+        //     snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+      });
+
+      // QuerySnapshot snapshot = await postsGroupRef
+      //     .where("category", isEqualTo: category)
+      //     .orderBy('timestamp', descending: true)
+      //     .getDocuments();
+      // setState(() {
+      //   isLoading = false;
+      //   posts =
+      //       snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+      // });
+    }
   }
 
   buildCategoryPosts() {
@@ -202,9 +307,11 @@ class _SearchState extends State<Search>
             child: Padding(
               padding: EdgeInsets.only(left: 4.0, right: 4.0),
               child: InkWell(
-                onTap: () {setState(() {
-                  posts = [];
-                });},
+                onTap: () {
+                  setState(() {
+                    posts = [];
+                  });
+                },
                 child: Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Center(
@@ -212,14 +319,14 @@ class _SearchState extends State<Search>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Padding(
-                          padding: EdgeInsets.only(left:6.0, right: 6.0),
+                          padding: EdgeInsets.only(left: 6.0, right: 6.0),
                           child: Icon(
                             Icons.arrow_back,
                             size: 28,
                             color: Colors.white,
                           )),
                       Padding(
-                        padding: EdgeInsets.only(left:6.0, right: 6.0),
+                        padding: EdgeInsets.only(left: 6.0, right: 6.0),
                         child: AutoSizeText(
                           "Go Back to Choose Category",
                           style: TextStyle(
@@ -239,21 +346,22 @@ class _SearchState extends State<Search>
           ),
         ),
         GridView.count(
-            crossAxisCount: 3,
-            childAspectRatio: 1.0,
-            mainAxisSpacing: 1.5,
-            crossAxisSpacing: 1.5,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            children: gridTiles)
+          crossAxisCount: 3,
+          childAspectRatio: 1.0,
+          mainAxisSpacing: 1.5,
+          crossAxisSpacing: 1.5,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          children: gridTiles,
+        )
       ],
     );
   }
 
-  buildSearchResults() {
-    if (isLoading) {
-      return circularProgress();
-    }
+  // buildSearchResults() {
+  //   if (isLoading) {
+  //     return circularProgress();
+  //   }
     // return FutureBuilder(
     //   future: searchResultsFuture,
     //   builder: (context, snapshot) {
@@ -272,7 +380,7 @@ class _SearchState extends State<Search>
     //     );
     //   },
     // );
-  }
+  // }
 
   bool get wantKeepAlive => true;
 
@@ -282,8 +390,8 @@ class _SearchState extends State<Search>
 
     return Scaffold(
       // backgroundColor: Theme.of(context).primaryColor,
-      backgroundColor: Colors.white,
-      appBar: buildSearchField(),
+      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.6),
+      appBar:header(context, isAppTitle: true),
       body: posts.isEmpty ? buildCategoriesButtons() : buildCategoryPosts(),
     );
   }

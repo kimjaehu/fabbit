@@ -314,7 +314,7 @@ class _ProfileState extends State<Profile> {
       return circularProgress();
     } else if (posts.isEmpty) {
       return Container(
-        color: Theme.of(context).accentColor.withOpacity(0.6),
+        color: Theme.of(context).accentColor,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
