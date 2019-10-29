@@ -160,11 +160,12 @@ class _MultiUploadState extends State<MultiUpload>
 
   Container buildSplashScreen() {
     return Container(
-      color: Theme.of(context).accentColor.withOpacity(0.6),
+      color: Theme.of(context).accentColor.withOpacity(0.8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          SvgPicture.asset('assets/images/upload.svg', height: 260.0),
+          Icon(Icons.file_upload, size: 260.0, color: Theme.of(context).primaryColor.withOpacity(0.8),),
+          // SvgPicture.asset('assets/images/upload.svg', height: 260.0),
           Padding(
             padding: EdgeInsets.only(top: 20.0),
             child: RaisedButton(
@@ -218,7 +219,7 @@ class _MultiUploadState extends State<MultiUpload>
     print('upload images started ${images.length}');
     await Future.wait(images.map((Asset image) async {
       print('image: $image');
-      ByteData byteData = await image.getByteData(quality: 50);
+      ByteData byteData = await image.getByteData(quality: 20);
       List<int> imageData = byteData.buffer.asUint8List();
       String fileName =
           'post_${postId}_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg';
@@ -292,14 +293,15 @@ class _MultiUploadState extends State<MultiUpload>
   }
 
   handleSubmit() async {
-    setState(() {
+    
+
+    if (_locationValid && _placeIdValid) {
+      setState(() {
       isUploading = true;
       _locationController.text.isEmpty
           ? _locationValid = false
           : _locationValid = true;
     });
-
-    if (_locationValid && _placeIdValid) {
       List<String> mediaUrls = await uploadImages();
       GeoFirePoint storeLocation = await getStoreLocation();
       // await compressImage();
@@ -319,11 +321,10 @@ class _MultiUploadState extends State<MultiUpload>
           discountedPrice: _discountedPriceController.text,
           storeLocation: storeLocation,
           keywords: searchKeywords);
+          setState(() {
+            isUploading = false;
+          });
     }
-
-    setState(() {
-      isUploading = false;
-    });
   }
 
   getLocationResults(String input) async {

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:fabbit/widgets/header.dart';
+import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -72,10 +73,11 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
     _addressValid = true;
     print('previous $_addressValid, $userLocationText');
     List<Placemark> placemarks = await Geolocator()
-        .placemarkFromAddress(userLocationText).catchError((onError) {
-          _addressValid = false;
-        });
-        
+        .placemarkFromAddress(userLocationText)
+        .catchError((onError) {
+      _addressValid = false;
+    });
+
     print('after $_addressValid');
     if (_addressValid) {
       Placemark placemark = placemarks[0];
@@ -101,8 +103,9 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
         ),
         TextField(
           controller: usernameController,
-           inputFormatters: [
-            WhitelistingTextInputFormatter(new RegExp('^[A-Za-z0-9 _]*[A-Za-z0-9][A-Za-z0-9 _]*')),
+          inputFormatters: [
+            WhitelistingTextInputFormatter(
+                new RegExp('^[A-Za-z0-9 _]*[A-Za-z0-9][A-Za-z0-9 _]*')),
           ],
           maxLength: 20,
           decoration: InputDecoration(
@@ -163,28 +166,34 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
     });
 
     if (_usernameValid && _userLocationValid) {
+      setState(() {
+        isLoading = true;
+      });
       await convertUserLocationToCoordinates(userLocationController.text);
       if (_addressValid) {
         location = usernameController.text;
       }
-        print('latitude: $latitude, longitude: $longitude');
-        SnackBar snackbar = SnackBar(
-          content: Text("Welcome ${usernameController.text}."),
-        );
-        _scaffoldKey.currentState.showSnackBar(snackbar);
-        UserData userData = new UserData(usernameController.text,
-            location, latitude, longitude);
-        print('userData $userData');
-        Timer(Duration(seconds: 1), () {
-          Navigator.of(context).pop(userData);
+      print('latitude: $latitude, longitude: $longitude');
+      SnackBar snackbar = SnackBar(
+        content: Text("Welcome ${usernameController.text}."),
+      );
+      _scaffoldKey.currentState.showSnackBar(snackbar);
+      UserData userData =
+          new UserData(usernameController.text, location, latitude, longitude);
+      print('userData $userData');
+      Timer(Duration(seconds: 2), () {
+        setState(() {
+        isLoading = false;
         });
-      }
-      // usersRef.document(widget.currentUserId).updateData({
-      //   "displayName": displayNameController.text,
-      //   "bio": bioController.text,
-      // });
-      // SnackBar snackbar = SnackBar(content: Text("Profile updated."),);
-      // _scaffoldKey.currentState.showSnackBar(snackbar);
+        Navigator.of(context).pop(userData);
+      });
+    }
+    // usersRef.document(widget.currentUserId).updateData({
+    //   "displayName": displayNameController.text,
+    //   "bio": bioController.text,
+    // });
+    // SnackBar snackbar = SnackBar(content: Text("Profile updated."),);
+    // _scaffoldKey.currentState.showSnackBar(snackbar);
   }
 
   @override
@@ -193,7 +202,10 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
         key: _scaffoldKey,
         appBar: header(context,
             titleText: "Setup your profile", removeBackButton: true),
-        body: ListView(
+        body: 
+        
+        isLoading ? circularProgress() :
+        ListView(
           children: <Widget>[
             Container(
               child: Column(

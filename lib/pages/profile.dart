@@ -44,23 +44,29 @@ class _ProfileState extends State<Profile> {
         .collection('userFollowers')
         .document(currentUserId)
         .get();
-        setState(() {
-          isFollowing = doc.exists;
-        });
+    setState(() {
+      isFollowing = doc.exists;
+    });
   }
 
   getFollowers() async {
-    QuerySnapshot snapshot = await followersRef.document(widget.profileId).collection('userFollowers').getDocuments();
+    QuerySnapshot snapshot = await followersRef
+        .document(widget.profileId)
+        .collection('userFollowers')
+        .getDocuments();
     setState(() {
       followerCount = snapshot.documents.length;
     });
   }
 
   getFollowing() async {
-        QuerySnapshot snapshot = await followingRef.document(widget.profileId).collection('userFollowing').getDocuments();
-        setState(() {
-          followingCount = snapshot.documents.length;
-        });
+    QuerySnapshot snapshot = await followingRef
+        .document(widget.profileId)
+        .collection('userFollowing')
+        .getDocuments();
+    setState(() {
+      followingCount = snapshot.documents.length;
+    });
   }
 
   getProfilePosts() async {
@@ -84,10 +90,6 @@ class _ProfileState extends State<Profile> {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Text(
-          count.toString(),
-          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
-        ),
         Container(
           margin: EdgeInsets.only(top: 4.0),
           child: Text(
@@ -98,6 +100,10 @@ class _ProfileState extends State<Profile> {
               fontWeight: FontWeight.w400,
             ),
           ),
+        ),
+        Text(
+          count.toString(),
+          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -129,9 +135,9 @@ class _ProfileState extends State<Profile> {
           ),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isFollowing ? Colors.white : Colors.blue,
+            color: isFollowing ? Colors.white : Colors.deepOrange,
             border: Border.all(
-              color: isFollowing ? Colors.grey : Colors.blue,
+              color: isFollowing ? Colors.grey : Colors.deepOrange,
             ),
             borderRadius: BorderRadius.circular(5.0),
           ),
@@ -145,7 +151,7 @@ class _ProfileState extends State<Profile> {
     bool isProfileOwner = currentUserId == widget.profileId;
     if (isProfileOwner) {
       return buildButton(
-        text: "Edit Profile",
+        text: "Options",
         function: editProfile,
       );
     } else if (isFollowing) {
@@ -243,16 +249,50 @@ class _ProfileState extends State<Profile> {
           padding: EdgeInsets.all(16.0),
           child: Column(
             children: <Widget>[
-              Row(
+              Column(
+
                 children: <Widget>[
                   CircleAvatar(
                     radius: 40.0,
                     backgroundColor: Colors.grey,
                     backgroundImage: CachedNetworkImageProvider(user.photoUrl),
                   ),
+                   Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.only(top: 12.0),
+                    child: Text(
+                      user.username,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      user.displayName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(top: 2.0),
+                    child: Text(
+                      user.bio,
+                    ),
+                  )
+                ],
+              ),
+              Row(
+                children: <Widget>[
                   Expanded(
                     flex: 1,
                     child: Column(
+                      
                       children: <Widget>[
                         Row(
                           mainAxisSize: MainAxisSize.max,
@@ -274,34 +314,6 @@ class _ProfileState extends State<Profile> {
                   )
                 ],
               ),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 12.0),
-                child: Text(
-                  user.username,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                  ),
-                ),
-              ),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 4.0),
-                child: Text(
-                  user.displayName,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 2.0),
-                child: Text(
-                  user.bio,
-                ),
-              )
             ],
           ),
         );
@@ -314,17 +326,22 @@ class _ProfileState extends State<Profile> {
       return circularProgress();
     } else if (posts.isEmpty) {
       return Container(
-        color: Theme.of(context).accentColor,
+        color: Theme.of(context).accentColor.withOpacity(0.6),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            SvgPicture.asset('assets/images/no_content.svg', height: 260.0),
+            // SvgPicture.asset('assets/images/no_content.svg', height: 260.0),
+            Icon(
+              Icons.warning,
+              size: 260.0,
+              color: Colors.deepOrange,
+            ),
             Padding(
-              padding: EdgeInsets.only(top: 20.0),
+              padding: EdgeInsets.only(bottom: 20.0),
               child: Text(
                 "No Posts",
                 style: TextStyle(
-                    color: Colors.redAccent,
+                    color: Colors.deepOrange,
                     fontSize: 40.0,
                     fontWeight: FontWeight.bold),
               ),

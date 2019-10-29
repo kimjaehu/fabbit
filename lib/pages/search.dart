@@ -17,7 +17,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/pages/activity_feed.dart';
 import 'package:fabbit/pages/home.dart';
-import 'package:fabbit/widgets/header.dart';
 import 'package:fabbit/widgets/post.dart';
 import 'package:fabbit/widgets/post_tile.dart';
 import 'package:fabbit/widgets/progress.dart';
@@ -62,8 +61,10 @@ class _SearchState extends State<Search>
   @override
   void initState() {
     super.initState();
+    
     _getUserLocation().then((position) {
       _userLocation = position;
+      getCategoryPosts(categories[0]["text"]);
     });
   }
 
@@ -125,7 +126,7 @@ class _SearchState extends State<Search>
           hintText: "fab finds one keyword at a time...",
           filled: true,
           prefixIcon: Icon(
-            Icons.shop,
+            Icons.search,
             size: 28.0,
           ),
           suffixIcon: IconButton(
@@ -135,6 +136,36 @@ class _SearchState extends State<Search>
         ),
         onFieldSubmitted: handleSearch,
       ),
+    );
+  }
+
+  Widget buildCategoriesRow() {
+    return ListView.builder(
+      itemCount: categories.length,
+      scrollDirection: Axis.horizontal,
+      itemBuilder: (BuildContext context, int index) {
+      return Card(
+            color: categories[index]["color"],
+            child: Padding(
+              padding: EdgeInsets.only(left:6.0, right: 6.0),
+              child: InkWell(
+                onTap: () => getCategoryPosts(categories[index]["text"]),
+                child: Center(
+                  child: AutoSizeText(
+                    categories[index]["text"],
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+          );
+     },
     );
   }
 
@@ -300,51 +331,51 @@ class _SearchState extends State<Search>
 
     return ListView(
       children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-          child: Card(
-            color: Colors.grey[800],
-            child: Padding(
-              padding: EdgeInsets.only(left: 4.0, right: 4.0),
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    posts = [];
-                  });
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Center(
-                      child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Padding(
-                          padding: EdgeInsets.only(left: 6.0, right: 6.0),
-                          child: Icon(
-                            Icons.arrow_back,
-                            size: 28,
-                            color: Colors.white,
-                          )),
-                      Padding(
-                        padding: EdgeInsets.only(left: 6.0, right: 6.0),
-                        child: AutoSizeText(
-                          "Go Back to Choose Category",
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  )),
-                ),
-              ),
-            ),
-          ),
-        ),
+        // Padding(
+        //   padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+        //   child: Card(
+        //     color: Colors.grey[700],
+        //     child: Padding(
+        //       padding: EdgeInsets.only(left: 4.0, right: 4.0),
+        //       child: InkWell(
+        //         onTap: () {
+        //           setState(() {
+        //             posts = [];
+        //           });
+        //         },
+        //         child: Padding(
+        //           padding: EdgeInsets.all(8.0),
+        //           child: Center(
+        //               child: Row(
+        //             mainAxisAlignment: MainAxisAlignment.center,
+        //             children: <Widget>[
+        //               Padding(
+        //                   padding: EdgeInsets.only(left: 6.0, right: 6.0),
+        //                   child: Icon(
+        //                     Icons.arrow_back,
+        //                     size: 28,
+        //                     color: Colors.white,
+        //                   )),
+        //               Padding(
+        //                 padding: EdgeInsets.only(left: 6.0, right: 6.0),
+        //                 child: AutoSizeText(
+        //                   "Go Back to Choose Category",
+        //                   style: TextStyle(
+        //                     fontSize: 20,
+        //                     color: Colors.white,
+        //                     fontWeight: FontWeight.bold,
+        //                   ),
+        //                   maxLines: 1,
+        //                   textAlign: TextAlign.center,
+        //                 ),
+        //               ),
+        //             ],
+        //           )),
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
         GridView.count(
           crossAxisCount: 3,
           childAspectRatio: 1.0,
@@ -382,6 +413,13 @@ class _SearchState extends State<Search>
     // );
   // }
 
+  Widget buildContent() {
+    return Column(children: <Widget>[
+      
+    ],
+    );
+  }
+
   bool get wantKeepAlive => true;
 
   @override
@@ -389,10 +427,19 @@ class _SearchState extends State<Search>
     super.build(context);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       // backgroundColor: Theme.of(context).primaryColor,
-      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.6),
-      appBar:header(context, isAppTitle: true),
-      body: posts.isEmpty ? buildCategoriesButtons() : buildCategoryPosts(),
+      // appBar:header(context, isAppTitle: true),
+      appBar: buildSearchField(),
+      body: 
+        Column(children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(top: 5.0,bottom: 5.0,right: 10.0,left: 10.0),
+            child: SizedBox(height: 30.0,child: buildCategoriesRow(),)),
+          Expanded(child: posts.isEmpty ? buildNoContent() : buildCategoryPosts(),)
+
+        ],)
+        
     );
   }
 }

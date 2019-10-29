@@ -122,6 +122,7 @@ class _HomeState extends State<Home> {
     // 1. check if user exists in users collection in database (according to their id)
     final GoogleSignInAccount user = googleSignIn.currentUser;
     DocumentSnapshot doc = await usersRef.document(user.id).get();
+    print('doc data ${doc.data}');
     if (!doc.exists) {
       // 2. if the user doesn't exist, take user to the create account page
       // final username = await Navigator.push(
@@ -153,6 +154,8 @@ class _HomeState extends State<Home> {
           .setData({});
 
       doc = await usersRef.document(user.id).get();
+      print('doc data after pop ${doc.data}');
+      Navigator.pop(context);
     }
     currentUser = User.fromDocument(doc);
     // print(currentUser);
@@ -190,7 +193,7 @@ class _HomeState extends State<Home> {
       body: PageView(
         children: <Widget>[
           Search(),
-          Timeline(currentUser: currentUser),
+          // Timeline(currentUser: currentUser),
           MultiUpload(currentUser: currentUser),
           ActivityFeed(),
           Profile(profileId: currentUser?.id),
@@ -206,7 +209,7 @@ class _HomeState extends State<Home> {
         activeColor: Theme.of(context).accentColor,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.shop_two)),
-          BottomNavigationBarItem(icon: Icon(Icons.whatshot)),
+          // BottomNavigationBarItem(icon: Icon(Icons.whatshot)),
           BottomNavigationBarItem(icon: Icon(Icons.photo_camera, size: 35.0)),
           BottomNavigationBarItem(icon: Icon(Icons.notifications_active)),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
@@ -238,6 +241,7 @@ class _HomeState extends State<Home> {
                 color: Colors.cyanAccent,
               ),
             ),
+            SizedBox(height: 10,),
             GestureDetector(
               onTap: login,
               child: Container(

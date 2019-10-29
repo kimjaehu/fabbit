@@ -87,7 +87,7 @@ class _TimelineState extends State<Timeline> {
           }
         });
         return Container(
-          color: Theme.of(context).accentColor.withOpacity(0.2),
+          color: Theme.of(context).accentColor.withOpacity(0.4),
           child: Column(
             children: <Widget>[
               Container(
