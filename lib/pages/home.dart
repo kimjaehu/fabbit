@@ -192,7 +192,7 @@ class _HomeState extends State<Home> {
       key: _scaffoldKey,
       body: PageView(
         children: <Widget>[
-          Search(),
+          Search(currentUser: currentUser),
           // Timeline(currentUser: currentUser),
           MultiUpload(currentUser: currentUser),
           ActivityFeed(),

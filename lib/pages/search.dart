@@ -29,6 +29,9 @@ import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 
 class Search extends StatefulWidget {
+  final User currentUser;
+
+  Search({this.currentUser});
   @override
   _SearchState createState() => _SearchState();
 }

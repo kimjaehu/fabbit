@@ -160,7 +160,7 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
               usernameController.text.isEmpty
           ? _usernameValid = false
           : _usernameValid = true;
-      userLocationController.text.trim().length > 30
+      userLocationController.text.trim().length > 50
           ? _userLocationValid = false
           : _userLocationValid = true;
     });

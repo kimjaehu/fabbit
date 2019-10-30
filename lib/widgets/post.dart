@@ -505,7 +505,25 @@ class _PostState extends State<Post> {
             //   ),
             // ),
             Expanded(
-              child: Text(description),
+              child: Padding(padding: EdgeInsets.all(5.0),child: Text(category, style: TextStyle(fontWeight: FontWeight.bold),)),
+            )
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // Container(
+            //   margin: EdgeInsets.only(left: 20.0),
+            //   child: Text(
+            //     "$username ",
+            //     style: TextStyle(
+            //       color: Colors.black,
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
+            // ),
+            Expanded(
+              child: Padding(padding: EdgeInsets.all(5.0),child: Text(description)),
             )
           ],
         ),
