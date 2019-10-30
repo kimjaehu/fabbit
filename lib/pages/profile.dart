@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';
@@ -95,7 +96,7 @@ class _ProfileState extends State<Profile> {
           child: Text(
             label,
             style: TextStyle(
-              color: Colors.grey,
+              color: Colors.grey[200],
               fontSize: 15.0,
               fontWeight: FontWeight.w400,
             ),
@@ -103,7 +104,11 @@ class _ProfileState extends State<Profile> {
         ),
         Text(
           count.toString(),
-          style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 22.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ],
     );
@@ -245,76 +250,79 @@ class _ProfileState extends State<Profile> {
           return circularProgress();
         }
         User user = User.fromDocument(snapshot.data);
-        return Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            children: <Widget>[
-              Column(
-
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: 40.0,
-                    backgroundColor: Colors.grey,
-                    backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-                  ),
-                   Container(
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.only(top: 12.0),
-                    child: Text(
-                      user.username,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.only(top: 4.0),
-                    child: Text(
-                      user.displayName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    padding: EdgeInsets.only(top: 2.0),
-                    child: Text(
-                      user.bio,
-                    ),
-                  )
-                ],
-              ),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      
-                      children: <Widget>[
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            buildCountColumn("posts", postCount),
-                            buildCountColumn("followers", followerCount),
-                            buildCountColumn("following", followingCount),
-                          ],
+        return Container(
+          color: Theme.of(context).primaryColor,
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              children: <Widget>[
+                Column(
+                  children: <Widget>[
+                    // CircleAvatar(
+                    //   radius: 40.0,
+                    //   backgroundColor: Colors.grey,
+                    //   backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+                    // ),
+                    Container(
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.only(top: 12.0),
+                      child: AutoSizeText(
+                        user.username,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 40.0,
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            buildProfileButton(),
-                          ],
-                        )
-                      ],
+                        maxLines: 1,
+                      ),
                     ),
-                  )
-                ],
-              ),
-            ],
+                    // Container(
+                    //   alignment: Alignment.center,
+                    //   padding: EdgeInsets.only(top: 4.0),
+                    //   child: Text(
+                    //     user.displayName,
+                    //     style: TextStyle(
+                    //       fontWeight: FontWeight.bold,
+                    //     ),
+                    //   ),
+                    // ),
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      padding: EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        user.bio,
+                      ),
+                    )
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              buildCountColumn("posts", postCount),
+                              buildCountColumn("followers", followerCount),
+                              buildCountColumn("following", followingCount),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              buildProfileButton(),
+                            ],
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },

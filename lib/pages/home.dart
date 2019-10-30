@@ -210,7 +210,7 @@ class _HomeState extends State<Home> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.shop_two)),
           // BottomNavigationBarItem(icon: Icon(Icons.whatshot)),
-          BottomNavigationBarItem(icon: Icon(Icons.photo_camera, size: 35.0)),
+          BottomNavigationBarItem(icon: Icon(Icons.photo_camera)),
           BottomNavigationBarItem(icon: Icon(Icons.notifications_active)),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
         ],

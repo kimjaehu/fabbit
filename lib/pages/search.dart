@@ -17,6 +17,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fabbit/models/user.dart';
 import 'package:fabbit/pages/activity_feed.dart';
 import 'package:fabbit/pages/home.dart';
+import 'package:fabbit/widgets/header.dart';
 import 'package:fabbit/widgets/post.dart';
 import 'package:fabbit/widgets/post_tile.dart';
 import 'package:fabbit/widgets/progress.dart';
@@ -233,20 +234,22 @@ class _SearchState extends State<Search>
         child: ListView(
           shrinkWrap: true,
           children: <Widget>[
-            SvgPicture.asset(
-              'assets/images/search.svg',
-              height: orientation == Orientation.portrait ? 200.0 : 100.0,
-            ),
-            Text(
-              "Find something good",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w600,
-                fontSize: 40.0,
-              ),
-            )
+            Icon(Icons.texture,size: 120,),
+            Text("No Fab Finds Yet!", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20.0),)
+            // SvgPicture.asset(
+            //   'assets/images/search.svg',
+            //   height: orientation == Orientation.portrait ? 200.0 : 100.0,
+            // ),
+            // Text(
+            //   "Find something good",
+            //   textAlign: TextAlign.center,
+            //   style: TextStyle(
+            //     color: Colors.white,
+            //     fontStyle: FontStyle.italic,
+            //     fontWeight: FontWeight.w600,
+            //     fontSize: 40.0,
+            //   ),
+            
           ],
         ),
       ),
@@ -429,8 +432,8 @@ class _SearchState extends State<Search>
     return Scaffold(
       backgroundColor: Colors.white,
       // backgroundColor: Theme.of(context).primaryColor,
-      // appBar:header(context, isAppTitle: true),
-      appBar: buildSearchField(),
+      appBar:header(context, isAppTitle: true),
+      // appBar: buildSearchField(),
       body: 
         Column(children: <Widget>[
           Padding(

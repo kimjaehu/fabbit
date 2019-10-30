@@ -139,9 +139,10 @@ class Comment extends StatelessWidget {
       children: <Widget>[
         ListTile(
           title: Text(comment),
-          leading: CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(avatarUrl),
-          ),
+          leading: Text(username, style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),),
+          // leading: CircleAvatar(
+          //   backgroundImage: CachedNetworkImageProvider(avatarUrl),
+          // ),
           subtitle: Text(timeago.format(timestamp.toDate())),
         ),
         Divider(),

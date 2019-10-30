@@ -130,7 +130,7 @@ class _PostState extends State<Post> {
   });
 
   @override
-  void initState() { 
+  void initState() {
     super.initState();
     setState(() {
       if (originalPrice.isNotEmpty | discountedPrice.isNotEmpty) {
@@ -155,28 +155,34 @@ class _PostState extends State<Post> {
         }
         User user = User.fromDocument(snapshot.data);
         bool isPostOwner = currentUserId == ownerId;
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-            backgroundColor: Colors.grey,
-          ),
-          title: GestureDetector(
-            onTap: () => showProfile(context, profileId: user.id),
-            child: Text(
-              user.username,
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+        return Container(
+          padding: EdgeInsets.only(top: 5.0, bottom: 5.0),
+          // color: Colors.blueGrey[50],
+          color: Theme.of(context).accentColor,
+          child: ListTile(
+            // leading: CircleAvatar(
+            //   backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+            //   backgroundColor: Colors.grey,
+            // ),
+            title: GestureDetector(
+              onTap: () => showProfile(context, profileId: user.id),
+              child: Text(
+                'Post by ${user.username}',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
+            subtitle: Text(location, style: TextStyle(color: Colors.white),),
+            trailing: isPostOwner
+                ? IconButton(
+                    onPressed: () => handleDeletePost(context),
+                    icon: Icon(Icons.more_vert,color: Colors.white,),
+                  )
+                : Text(''),
           ),
-          subtitle: Text(location),
-          trailing: isPostOwner
-              ? IconButton(
-                  onPressed: () => handleDeletePost(context),
-                  icon: Icon(Icons.more_vert),
-                )
-              : Text(''),
         );
       },
     );
@@ -351,19 +357,45 @@ class _PostState extends State<Post> {
               _discountPercentage == null || _discountPercentage < 40
                   ? Text('')
                   : Positioned(
+                      top: 40.0,
+                      left: 35.0,
+                      child: Container(
+                          color: Colors.redAccent,
+                          padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
+                          child: Text(
+                            'FAB DEAL!',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          )),
+                    ),
+              _discountPercentage == null
+                  ? Text('')
+                  : Positioned(
                       top: 10.0,
                       left: 35.0,
                       child: Container(
-                        color: Colors.redAccent,
+                        color: Colors.cyan[200],
                         padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
-                        child: Text(
-                                'FAB DEAL!',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              )
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              '\$${_formattedDiscountedPrices.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Padding(padding: EdgeInsets.only(right: 5.0)),
+                            Text(
+                              '\$${_formattedOriginalPrices.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Colors.red),
+                            ),
+                            Padding(padding: EdgeInsets.only(right: 10.0)),
+                          ],
+                        ),
                       ),
-                    ),
+                    )
             ],
           ),
           showHeart
@@ -388,89 +420,90 @@ class _PostState extends State<Post> {
   }
 
   buildPostFooter() {
-    
-
     return Column(
       children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Padding(padding: EdgeInsets.only(top: 40.0, left: 20.0)),
-            GestureDetector(
-              onTap: handleLikePost,
-              child: Icon(
-                isLiked ? Icons.favorite : Icons.favorite_border,
-                size: 28.0,
-                color: Colors.pink,
-              ),
-            ),
-            Padding(padding: EdgeInsets.only(right: 20.0)),
-            GestureDetector(
-              onTap: () => showComments(
-                context,
-                postId: postId,
-                ownerId: ownerId,
-                mediaUrls: mediaUrls,
-              ),
-              child: Icon(
-                Icons.chat,
-                size: 28.0,
-                color: Colors.blue[900],
-              ),
-            ),
-            Padding(padding: EdgeInsets.only(right: 20.0)),
-            _discountPercentage == null
-                ? Text('')
-                : Row(
-                    children: <Widget>[
-                      Text('Price:',
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold)),
-                      Padding(padding: EdgeInsets.only(right: 5.0)),
-                      Text(
-                        '\$${_formattedDiscountedPrices.toStringAsFixed(2)}',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
-                      ),
-                      Padding(padding: EdgeInsets.only(right: 5.0)),
-                      Text(
-                        '\$${_formattedOriginalPrices.toStringAsFixed(2)}',
-                        style: TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            color: Colors.red),
-                      ),
-                      Padding(padding: EdgeInsets.only(right: 10.0)),
-                    ],
+        Container(
+          color: Colors.blueGrey[100],
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Padding(padding: EdgeInsets.only(top: 40.0, left: 20.0)),
+              Row(
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: handleLikePost,
+                    child: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      size: 28.0,
+                      color: Colors.pink,
+                    ),
                   ),
-          ],
-        ),
-        Row(
-          children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "$likeCount likes",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: EdgeInsets.only(left: 10.0),
+                  ),
+                  Text(
+                    "$likeCount",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Padding(padding: EdgeInsets.only(right: 20.0)),
+              GestureDetector(
+                onTap: () => showComments(
+                  context,
+                  postId: postId,
+                  ownerId: ownerId,
+                  mediaUrls: mediaUrls,
+                ),
+                child: Icon(
+                  Icons.chat,
+                  size: 28.0,
+                  color: Colors.blue[900],
                 ),
               ),
-            ),
-          ],
+              Padding(padding: EdgeInsets.only(right: 20.0)),
+              // _discountPercentage == null
+              //     ? Text('')
+              //     : Row(
+              //         children: <Widget>[
+              //           Text('Price:',
+              //               style: TextStyle(
+              //                   fontSize: 15, fontWeight: FontWeight.bold)),
+              //           Padding(padding: EdgeInsets.only(right: 5.0)),
+              //           Text(
+              //             '\$${_formattedDiscountedPrices.toStringAsFixed(2)}',
+              //             style: TextStyle(
+              //                 fontSize: 15, fontWeight: FontWeight.bold),
+              //           ),
+              //           Padding(padding: EdgeInsets.only(right: 5.0)),
+              //           Text(
+              //             '\$${_formattedOriginalPrices.toStringAsFixed(2)}',
+              //             style: TextStyle(
+              //                 decoration: TextDecoration.lineThrough,
+              //                 color: Colors.red),
+              //           ),
+              //           Padding(padding: EdgeInsets.only(right: 10.0)),
+              //         ],
+              //       ),
+            ],
+          ),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "$username ",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            // Container(
+            //   margin: EdgeInsets.only(left: 20.0),
+            //   child: Text(
+            //     "$username ",
+            //     style: TextStyle(
+            //       color: Colors.black,
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
+            // ),
             Expanded(
               child: Text(description),
             )
