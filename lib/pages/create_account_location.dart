@@ -3,6 +3,7 @@ import 'package:fabbit/widgets/header.dart';
 import 'package:fabbit/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 
 class CreateAccountLocation extends StatefulWidget {
@@ -60,7 +61,7 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
     Placemark placemark = placemarks[0];
     String completeAddress =
         'subthroughfare: ${placemark.subThoroughfare} throughfare: ${placemark.thoroughfare}, sublocality: ${placemark.subLocality} locality: ${placemark.locality}, subAdministrativeArea:${placemark.subAdministrativeArea},administrativeArea: ${placemark.administrativeArea} postalCode:${placemark.postalCode}, country:${placemark.country}';
-    print(completeAddress);
+
     String formattedAddress =
         "${placemark.locality}, ${placemark.administrativeArea}";
     userLocationController.text = formattedAddress;
@@ -71,14 +72,12 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
 
   convertUserLocationToCoordinates(String userLocationText) async {
     _addressValid = true;
-    print('previous $_addressValid, $userLocationText');
     List<Placemark> placemarks = await Geolocator()
         .placemarkFromAddress(userLocationText)
         .catchError((onError) {
       _addressValid = false;
     });
 
-    print('after $_addressValid');
     if (_addressValid) {
       Placemark placemark = placemarks[0];
       latitude = placemark.position.latitude;
@@ -120,6 +119,33 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
       ],
     );
   }
+
+  // Column buildUserLocationField() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: <Widget>[
+  //        Padding(
+  //         padding: EdgeInsets.only(top: 12.0),
+  //         child: Text(
+  //           "Set Your Location",
+  //           style: TextStyle(color: Colors.grey),
+  //         ),
+  //       ),
+  //       TypeAheadField(debounceDuration: Duration(milliseconds: 500),
+  //               direction: AxisDirection.up,
+  //               textFieldConfiguration: TextFieldConfiguration(
+  //                 controller: _userLocationController,
+  //                 decoration: InputDecoration(
+  //                   hintText: "Set your location (city, state/province)",
+  //                   errorText: _userLocationValid
+  //                       ? null
+  //                       : "Store location is invalid.",
+  //                   border: InputBorder.none,
+  //                 ),
+  //               ),)
+  //     ],
+  //   );
+  // }
 
   Column buildUserLocationField() {
     return Column(
@@ -173,14 +199,13 @@ class CreateAccountLocationState extends State<CreateAccountLocation> {
       if (_addressValid) {
         location = usernameController.text;
       }
-      print('latitude: $latitude, longitude: $longitude');
       SnackBar snackbar = SnackBar(
         content: Text("Welcome ${usernameController.text}."),
       );
       _scaffoldKey.currentState.showSnackBar(snackbar);
       UserData userData =
           new UserData(usernameController.text, location, latitude, longitude);
-      print('userData $userData');
+
       Timer(Duration(seconds: 2), () {
         setState(() {
         isLoading = false;

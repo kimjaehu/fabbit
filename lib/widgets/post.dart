@@ -133,7 +133,7 @@ class _PostState extends State<Post> {
   void initState() {
     super.initState();
     setState(() {
-      if (originalPrice.isNotEmpty | discountedPrice.isNotEmpty) {
+      if (originalPrice.isNotEmpty || discountedPrice.isNotEmpty || double.parse(originalPrice) > double.parse(discountedPrice)) {
         _formattedOriginalPrices = double.parse(originalPrice);
         _formattedDiscountedPrices = double.parse(discountedPrice);
         _discountPercentage =
@@ -354,7 +354,7 @@ class _PostState extends State<Post> {
                   );
                 }).toList(),
               ),
-              _discountPercentage == null || _discountPercentage < 40
+              (_discountPercentage == null || _discountPercentage < 50)
                   ? Text('')
                   : Positioned(
                       top: 40.0,

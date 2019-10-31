@@ -82,7 +82,7 @@ class _StoreLocationState extends State<StoreLocation> {
     String request = '$baseURL?input=$input&location=$latitude,$longitude&key=$PLACES_API_KEY&radius=$radius&strictbounds';
 
     Response response = await Dio().get(request);
-    print(response);
+
     final predictions = response.data['predictions'];
 
     return predictions;

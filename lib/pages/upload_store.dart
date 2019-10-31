@@ -243,7 +243,7 @@ class _UploadStoreState extends State<UploadStore>
         '$baseURL?input=$input&key=$PLACES_API_KEY&sessiontoken=$postId';
 
     Response response = await Dio().get(request);
-    print(response);
+
     final predictions = response.data['predictions'];
 
     // List<Dropdown> _displayResults = [];

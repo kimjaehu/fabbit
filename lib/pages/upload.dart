@@ -244,7 +244,7 @@ class _UploadState extends State<Upload>
         '$baseURL?input=$input&location=$latitude,$longitude&key=$PLACES_API_KEY&radius=$radius&strictbounds&sessiontoken=$sessionToken';
     // String request =
     //     '$baseURL?input=$input&key=$PLACES_API_KEY&sessiontoken=$sessionToken';
-    print('session token in autocomplete $sessionToken');
+
     Response response = await Dio().get(request);
     final predictions = response.data['predictions'];
 
@@ -266,14 +266,12 @@ class _UploadState extends State<Upload>
     String baseURL = 'https://maps.googleapis.com/maps/api/place/details/json';
     String request =
         '$baseURL?&key=$PLACES_API_KEY&place_id=$_placeId&sessiontoken=$sessionToken';
-    print('session token in places detail $sessionToken');
+
     Response response = await Dio().get(request);
     final storeInfo = response.data['result']['geometry']['location'];
 
     GeoFirePoint storeLocationPoint =
         geo.point(latitude: storeInfo['lat'], longitude: storeInfo['lng']);
-
-    print('store location point $storeLocationPoint');
 
     return storeLocationPoint;
   }

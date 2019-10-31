@@ -65,7 +65,6 @@ class _SearchState extends State<Search>
   @override
   void initState() {
     super.initState();
-    
     _getUserLocation().then((position) {
       _userLocation = position;
       getCategoryPosts(categories[0]["text"]);
@@ -87,36 +86,37 @@ class _SearchState extends State<Search>
   // }
 
   handleSearch(String query) {
-  setState(() {
+    setState(() {
       isLoading = true;
     });
-    GeoFirePoint center = geo.point(latitude: _userLocation.latitude, longitude: _userLocation.longitude);
+    GeoFirePoint center = geo.point(
+        latitude: _userLocation.latitude, longitude: _userLocation.longitude);
     double radius = 35;
     String field = 'position';
 
-      var collectionReference = postsGroupRef.where("keywords", arrayContains: query);
-      Stream<List<DocumentSnapshot>> stream = geo.collection(collectionRef: collectionReference)
-                                        .within(center: center, radius: radius, field: field);
-      stream.listen((List<DocumentSnapshot> documentList) {
-        setState(() {
-          isLoading = false;
-          posts = documentList.map((doc) => Post.fromDocument(doc)).toList();
-        });
-      });
-      
-      
+    var collectionReference =
+        postsGroupRef.where("keywords", arrayContains: query);
+    Stream<List<DocumentSnapshot>> stream = geo
+        .collection(collectionRef: collectionReference)
+        .within(center: center, radius: radius, field: field);
+    stream.listen((List<DocumentSnapshot> documentList) {
       setState(() {
         isLoading = false;
-        // posts = postsList;
-        // posts =
-        //     snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+        posts = documentList.map((doc) => Post.fromDocument(doc)).toList();
       });
+    });
+
+    setState(() {
+      isLoading = false;
+      // posts = postsList;
+      // posts =
+      //     snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+    });
   }
 
   clearSearch() {
     searchController.clear();
   }
-
 
   AppBar buildSearchField() {
     return AppBar(
@@ -148,28 +148,28 @@ class _SearchState extends State<Search>
       itemCount: categories.length,
       scrollDirection: Axis.horizontal,
       itemBuilder: (BuildContext context, int index) {
-      return Card(
-            color: categories[index]["color"],
-            child: Padding(
-              padding: EdgeInsets.only(left:6.0, right: 6.0),
-              child: InkWell(
-                onTap: () => getCategoryPosts(categories[index]["text"]),
-                child: Center(
-                  child: AutoSizeText(
-                    categories[index]["text"],
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
+        return Card(
+          color: categories[index]["color"],
+          child: Padding(
+            padding: EdgeInsets.only(left: 6.0, right: 6.0),
+            child: InkWell(
+              onTap: () => getCategoryPosts(categories[index]["text"]),
+              child: Center(
+                child: AutoSizeText(
+                  categories[index]["text"],
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
-          );
-     },
+          ),
+        );
+      },
     );
   }
 
@@ -237,8 +237,15 @@ class _SearchState extends State<Search>
         child: ListView(
           shrinkWrap: true,
           children: <Widget>[
-            Icon(Icons.texture,size: 120,),
-            Text("No Fab Finds Yet!", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20.0),)
+            Icon(
+              Icons.texture,
+              size: 120,
+            ),
+            Text(
+              "No Fab Finds Yet!",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20.0),
+            )
             // SvgPicture.asset(
             //   'assets/images/search.svg',
             //   height: orientation == Orientation.portrait ? 200.0 : 100.0,
@@ -252,7 +259,6 @@ class _SearchState extends State<Search>
             //     fontWeight: FontWeight.w600,
             //     fontSize: 40.0,
             //   ),
-            
           ],
         ),
       ),
@@ -269,7 +275,8 @@ class _SearchState extends State<Search>
     setState(() {
       isLoading = true;
     });
-    GeoFirePoint center = geo.point(latitude: _userLocation.latitude, longitude: _userLocation.longitude);
+    GeoFirePoint center = geo.point(
+        latitude: _userLocation.latitude, longitude: _userLocation.longitude);
     double radius = 35;
     String field = 'position';
     if (category == "All") {
@@ -278,16 +285,16 @@ class _SearchState extends State<Search>
       //     .getDocuments();
 
       var collectionReference = postsGroupRef;
-      Stream<List<DocumentSnapshot>> stream = geo.collection(collectionRef: collectionReference)
-                                        .within(center: center, radius: radius, field: field);
+      Stream<List<DocumentSnapshot>> stream = geo
+          .collection(collectionRef: collectionReference)
+          .within(center: center, radius: radius, field: field);
       stream.listen((List<DocumentSnapshot> documentList) {
         setState(() {
           isLoading = false;
           posts = documentList.map((doc) => Post.fromDocument(doc)).toList();
         });
       });
-      
-      
+
       setState(() {
         isLoading = false;
         // posts = postsList;
@@ -295,18 +302,18 @@ class _SearchState extends State<Search>
         //     snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
       });
     } else {
-
-      var collectionReference = postsGroupRef.where("category", isEqualTo: category);
-      Stream<List<DocumentSnapshot>> stream = geo.collection(collectionRef: collectionReference)
-                                        .within(center: center, radius: radius, field: field);
+      var collectionReference =
+          postsGroupRef.where("category", isEqualTo: category);
+      Stream<List<DocumentSnapshot>> stream = geo
+          .collection(collectionRef: collectionReference)
+          .within(center: center, radius: radius, field: field);
       stream.listen((List<DocumentSnapshot> documentList) {
         setState(() {
           isLoading = false;
           posts = documentList.map((doc) => Post.fromDocument(doc)).toList();
         });
       });
-      
-      
+
       setState(() {
         isLoading = false;
         // posts = postsList;
@@ -332,7 +339,43 @@ class _SearchState extends State<Search>
     }
     List<GridTile> gridTiles = [];
     posts.forEach((post) {
-      gridTiles.add(GridTile(child: PostTile(post)));
+      bool fabDeal = false;
+      if (post.originalPrice.isNotEmpty ||
+          post.discountedPrice.isNotEmpty ||
+          double.parse(post.originalPrice) >
+              double.parse(post.discountedPrice)) {
+        double _originalPrices = double.parse(post.originalPrice);
+        double _discountedPrices = double.parse(post.discountedPrice);
+        double _percentage = (1 - (_discountedPrices / _originalPrices)) * 100;
+        if (_percentage >= 50) {
+          fabDeal = true;
+        }
+      }
+      gridTiles.add(fabDeal
+          ? GridTile(
+              header: 
+              // Container(
+              //   color: Colors.redAccent,
+              //   padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
+              //   child: 
+                Padding(
+                  padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
+                    child: Text(
+                    'FAB DEAL!',
+                    style: TextStyle(
+                        fontSize: 10.0,
+                        color: Colors.white,
+                        backgroundColor: Colors.redAccent,
+                        fontWeight: FontWeight.bold),
+                    // textAlign: TextAlign.center,
+                  ),
+                ),
+              // ),
+              child: PostTile(post),
+            )
+          : GridTile(
+              child: PostTile(post),
+            ));
     });
 
     return ListView(
@@ -399,30 +442,29 @@ class _SearchState extends State<Search>
   //   if (isLoading) {
   //     return circularProgress();
   //   }
-    // return FutureBuilder(
-    //   future: searchResultsFuture,
-    //   builder: (context, snapshot) {
-    //     if (!snapshot.hasData) {
-    //       return circularProgress();
-    //     }
-    //     List<UserResult> searchResults = [];
-    //     snapshot.data.documents.forEach((doc) {
-    //       User user = User.fromDocument(doc);
-    //       UserResult searchResult = UserResult(user);
-    //       searchResults.add(searchResult);
-    //       // print(user);
-    //     });
-    //     return ListView(
-    //       children: searchResults,
-    //     );
-    //   },
-    // );
+  // return FutureBuilder(
+  //   future: searchResultsFuture,
+  //   builder: (context, snapshot) {
+  //     if (!snapshot.hasData) {
+  //       return circularProgress();
+  //     }
+  //     List<UserResult> searchResults = [];
+  //     snapshot.data.documents.forEach((doc) {
+  //       User user = User.fromDocument(doc);
+  //       UserResult searchResult = UserResult(user);
+  //       searchResults.add(searchResult);
+  //       // print(user);
+  //     });
+  //     return ListView(
+  //       children: searchResults,
+  //     );
+  //   },
+  // );
   // }
 
   Widget buildContent() {
-    return Column(children: <Widget>[
-      
-    ],
+    return Column(
+      children: <Widget>[],
     );
   }
 
@@ -433,20 +475,24 @@ class _SearchState extends State<Search>
     super.build(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      // backgroundColor: Theme.of(context).primaryColor,
-      appBar:header(context, isAppTitle: true),
-      // appBar: buildSearchField(),
-      body: 
-        Column(children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(top: 5.0,bottom: 5.0,right: 10.0,left: 10.0),
-            child: SizedBox(height: 30.0,child: buildCategoriesRow(),)),
-          Expanded(child: posts.isEmpty ? buildNoContent() : buildCategoryPosts(),)
-
-        ],)
-        
-    );
+        backgroundColor: Colors.white,
+        // backgroundColor: Theme.of(context).primaryColor,
+        appBar: header(context, isAppTitle: true),
+        // appBar: buildSearchField(),
+        body: Column(
+          children: <Widget>[
+            Padding(
+                padding: EdgeInsets.only(
+                    top: 5.0, bottom: 5.0, right: 10.0, left: 10.0),
+                child: SizedBox(
+                  height: 30.0,
+                  child: buildCategoriesRow(),
+                )),
+            Expanded(
+              child: posts.isEmpty ? buildNoContent() : buildCategoryPosts(),
+            )
+          ],
+        ));
   }
 }
 
