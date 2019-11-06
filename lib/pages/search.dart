@@ -453,7 +453,6 @@ class _SearchState extends State<Search>
   //       User user = User.fromDocument(doc);
   //       UserResult searchResult = UserResult(user);
   //       searchResults.add(searchResult);
-  //       // print(user);
   //     });
   //     return ListView(
   //       children: searchResults,
